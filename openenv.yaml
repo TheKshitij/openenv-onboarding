@@ -1,0 +1,132 @@
+name: enterprise-employee-onboarding-agent
+version: "1.0.0"
+description: >
+  An OpenEnv environment where an AI agent completes enterprise employee onboarding
+  across 3–12 IT/HR systems (Active Directory, HRMS, payroll, compliance training,
+  badge access, VPN, health insurance, etc.) with realistic policy drift. Company
+  policies change mid-episode, invalidating already-completed systems and forcing
+  the agent to detect the change, re-read policy, and resubmit with corrected values.
+  Inspired by the real onboarding pipeline at large Indian IT firms.
+
+domain: world-modeling
+tags:
+  - enterprise
+  - hr-workflows
+  - long-horizon
+  - policy-drift
+  - schema-drift
+  - multi-step
+  - india
+
+author: openenv-hackathon-grand-finale
+license: MIT
+
+tasks:
+  - id: basic_onboarding
+    difficulty: easy
+    description: >
+      3-system onboarding: Active Directory, corporate email, HRMS registration.
+      No policy drift. Agent learns the provision → submit → verify action loop.
+    max_steps: 20
+    systems: 3
+    drift_steps: []
+    success_threshold: 0.30
+
+  - id: dept_onboarding
+    difficulty: medium
+    description: >
+      6-system departmental onboarding adding payroll, badge access, and device
+      allocation. Policy drifts once at step 15, invalidating badge_access and
+      device_allocation. Agent must detect the drift via check_policy and resubmit.
+    max_steps: 35
+    systems: 6
+    drift_steps: [15]
+    success_threshold: 0.30
+
+  - id: enterprise_onboarding
+    difficulty: hard
+    description: >
+      12-system full enterprise onboarding including VPN, compliance training,
+      IT security training, health insurance, project assignment, and mentor
+      assignment. Two policy drifts (steps 10 and 30) progressively tighten
+      security requirements. Invalidated systems must be escalated, reprovisioned,
+      and resubmitted with updated policy values.
+    max_steps: 55
+    systems: 12
+    drift_steps: [10, 30]
+    success_threshold: 0.30
+
+observation:
+  type: structured
+  format: JSON
+  fields:
+    - name: step / max_steps
+      type: int
+    - name: employee_id / employee_role / department
+      type: string
+    - name: systems
+      type: list[SystemState]
+      description: id, name, status (pending/in_progress/complete/blocked/failed), dependencies, attempts, error_msg
+    - name: current_policy
+      type: PolicyState
+      description: version, it_security_level, leave_policy, device_type, badge_zones, compliance_modules
+    - name: policy_drift_event
+      type: string
+      description: Non-empty when policy changed this step — describes what changed
+    - name: completed_count / total_required / completion_pct
+      type: int / int / float
+    - name: blocked_systems / failed_systems
+      type: list[str]
+    - name: episode_violations
+      type: int
+
+action:
+  type: text
+  format: >
+    One of:
+      provision <system_id>
+      submit <system_id> <field>=<value>,...
+      check_policy
+      escalate <system_id> <reason>
+      verify <system_id>
+      hold
+
+reward:
+  type: dense
+  description: >
+    Shaped reward every step:
+      +0.10 × (completed_required / total_required) — progress bonus, scales with completion
+      +0.20 per successful system submission
+      +1.00 on full episode completion (all required systems done)
+      -0.15 per failed submission (policy violation or missing fields)
+      -0.04 per required system currently in FAILED state
+      -0.02 per cumulative violation (accumulates over episode)
+      -0.05 for policy drift disruption signal
+      +0.02 for check_policy (small bonus for reading policy proactively)
+      +0.03 for successful escalate (unblocks failed system)
+    Episode terminates on: all required systems complete OR max_steps reached.
+    Score normalised to [0, 1] via deterministic physics-based bounds.
+
+themes:
+  primary: "Theme 2 — Long-Horizon Planning & Instruction Following"
+  secondary: "Theme 3.1 — World Modeling: Professional Tasks"
+  bonus_prizes:
+    - "Scale AI: Long-horizon workflows for HR & IT"
+    - "Patronus AI: Consumer workflows with schema drift"
+
+endpoints:
+  reset:  POST /reset
+  step:   POST /step
+  state:  GET  /state
+  tasks:  GET  /tasks
+  render: GET  /render
+  health: GET  /health
+
+server:
+  host: 0.0.0.0
+  port: 7860
+  framework: fastapi
+
+docker:
+  base_image: python:3.11-slim
+  expose: 7860
