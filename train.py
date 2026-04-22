@@ -193,8 +193,7 @@ def main():
         remove_unused_columns=False,
         seed=SEED,
         report_to="none",
-        max_new_tokens=MAX_NEW_TOKENS,
-        temperature=0.7,
+        max_completion_length=MAX_NEW_TOKENS,  # renamed from max_new_tokens in newer TRL
         num_generations=4,  # GRPO samples 4 completions per prompt
     )
 
