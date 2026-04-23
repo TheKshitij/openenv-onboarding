@@ -169,91 +169,248 @@ async def web():
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#06101e;--surf:#0d1b2e;--bdr:#1a2d45;--txt:#e2edf8;--mut:#5a7a9a;--blue:#3b82f6;--green:#22d3a0;--yel:#fbbf24;--red:#f43f5e;--purple:#a78bfa}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
-main{max-width:860px;margin:0 auto;padding:48px 20px 72px}
-.hd{text-align:center;margin-bottom:40px}
-.pill{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);border-radius:999px;padding:4px 14px;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pd 2s ease-in-out infinite}
-@keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
-h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#e2edf8,#a78bfa 50%,var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
-.sub{color:var(--mut);font-size:.9rem;max-width:520px;margin:0 auto;line-height:1.75}
-.sbar{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:10px 20px;margin-bottom:28px}
-.sdot{width:8px;height:8px;border-radius:50%;background:var(--mut);flex-shrink:0;transition:background .3s}
-.sdot.ok{background:var(--green)}.sdot.err{background:var(--red)}
-#stxt{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--mut)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
-.scard{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:16px;text-align:center}
-.sv{font-size:1.7rem;font-weight:800;color:var(--purple)}
-.sl{font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
-.sec{font-size:.7rem;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.tcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:24px}
-.tc{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:20px;transition:border-color .2s,transform .15s}
-.tc:hover{transform:translateY(-2px)}
-.tc.e:hover{border-color:var(--green)}.tc.m:hover{border-color:var(--yel)}.tc.h:hover{border-color:var(--red)}
-.th{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.tn{font-family:'JetBrains Mono',monospace;font-size:.76rem;font-weight:600}
-.dif{font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:999px}
-.dif.e{background:rgba(34,211,160,.1);color:var(--green)}.dif.m{background:rgba(251,191,36,.1);color:var(--yel)}.dif.h{background:rgba(244,63,94,.1);color:var(--red)}
-.td{font-size:.8rem;color:var(--mut);line-height:1.6}
-.tm{margin-top:8px;font-size:.68rem;color:#2a4a6a;font-family:'JetBrains Mono',monospace}
-.ep-box{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;margin-bottom:24px}
-.ep{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bdr)}
+:root{--bg:#050f1c;--s1:#0a1828;--s2:#0d1f30;--bd:#1a3045;--txt:#e2edf8;--mut:#4a6a85;--pur:#a78bfa;--pur2:#7c3aed;--tel:#22d3a0;--yel:#fbbf24;--red:#f43f5e;--blu:#3b82f6}
+html,body{min-height:100vh}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+canvas{position:fixed;inset:0;z-index:0;opacity:.25;pointer-events:none}
+main{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:52px 24px 72px}
+.hero{text-align:center;margin-bottom:40px}
+.live-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);color:var(--tel);border-radius:999px;padding:5px 16px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--tel);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;letter-spacing:-.04em;background:linear-gradient(135deg,#e2edf8 0%,#a78bfa 50%,#22d3a0 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;margin-bottom:14px}
+.tagline{color:var(--mut);font-size:.95rem;max-width:520px;margin:0 auto 24px;line-height:1.75}
+.status-bar{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:11px 22px;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--mut);margin-bottom:36px}
+.sdot{width:9px;height:9px;border-radius:50%;background:var(--tel);flex-shrink:0}
+.sdot.err{background:var(--red)}
+
+.section-lbl{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);margin-bottom:14px}
+.flow-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-bottom:20px}
+.systems-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.sc{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:12px 8px;text-align:center;transition:all .3s;position:relative}
+.sc.complete{border-color:#0f6e56;background:rgba(34,211,160,.04)}
+.sc.active{border-color:var(--pur);background:rgba(167,139,250,.07);animation:ag 1.8s ease-in-out infinite}
+.sc.failed{border-color:#a32d2d;background:rgba(244,63,94,.05)}
+.sc.blocked{opacity:.4}
+@keyframes ag{0%,100%{border-color:var(--pur)}50%{border-color:#c4b5fd}}
+.si{width:30px;height:30px;border-radius:8px;margin:0 auto 7px;display:flex;align-items:center;justify-content:center}
+.sn{font-size:.65rem;font-family:'JetBrains Mono',monospace;color:var(--mut);line-height:1.4}
+.ss{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:5px}
+.ss-complete{color:var(--tel)}.ss-active{color:var(--pur)}.ss-failed{color:var(--red)}.ss-blocked,.ss-pending{color:var(--mut)}
+.prog-row{display:flex;align-items:center;gap:12px}
+.prog-bg{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.prog-fg{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--pur),var(--tel));transition:width .6s ease}
+.prog-lbl{font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--tel);white-space:nowrap}
+
+.drift{background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;transition:opacity .5s}
+.drift-ic{width:20px;height:20px;border-radius:50%;background:rgba(251,191,36,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.drift-title{font-size:.76rem;font-weight:600;color:var(--yel);margin-bottom:4px}
+.drift-body{font-size:.68rem;font-family:'JetBrains Mono',monospace;color:rgba(251,191,36,.55);line-height:1.6}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:18px 12px;text-align:center}
+.sv{font-size:2rem;font-weight:800;letter-spacing:-.04em}
+.sl{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-top:5px}
+.vp{color:var(--pur)}.vt{color:var(--tel)}.vy{color:var(--yel)}.vb{color:#60a5fa}
+
+.tasks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.tc{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:18px;transition:transform .15s,border-color .15s}
+.tc:hover{transform:translateY(-3px)}
+.tc.e:hover{border-color:var(--tel)}.tc.m:hover{border-color:var(--yel)}.tc.h:hover{border-color:var(--red)}
+.tch{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.tcn{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;color:var(--txt)}
+.tcd{font-size:.63rem;font-weight:700;padding:2px 9px;border-radius:999px}
+.de{background:rgba(34,211,160,.1);color:var(--tel)}.dm{background:rgba(251,191,36,.1);color:var(--yel)}.dh{background:rgba(244,63,94,.1);color:var(--red)}
+.tcb{font-size:.78rem;color:var(--mut);line-height:1.65;margin-bottom:10px}
+.tcm{font-size:.65rem;font-family:'JetBrains Mono',monospace;color:#1a3045}
+
+.term{background:#020c18;border:1px solid var(--bd);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.term-top{background:var(--s1);padding:10px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--bd)}
+.tdot{width:10px;height:10px;border-radius:50%}
+.tl{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--mut);margin-left:8px}
+.term-body{padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:2;min-height:120px}
+.tc-cmd{color:#60a5fa}.tc-out{color:var(--tel)}.tc-warn{color:var(--yel)}.tc-mut{color:var(--mut)}
+.blink{animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.ep-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:14px;overflow:hidden;margin-bottom:24px}
+.ep{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--bd);transition:background .15s}
 .ep:last-child{border-bottom:none}
-.mth{font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:4px;min-width:38px;text-align:center}
-.mth.p{background:rgba(34,211,160,.1);color:var(--green)}.mth.g{background:rgba(59,130,246,.1);color:var(--blue)}
-.epath{font-family:'JetBrains Mono',monospace;font-size:.8rem}
-.edsc{font-size:.76rem;color:var(--mut);margin-left:auto}
-.acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 24px;border-radius:8px;font-size:.87rem;font-weight:600;text-decoration:none;border:none;font-family:inherit;cursor:pointer;transition:all .15s}
-.bpri{background:var(--purple);color:#fff}.bpri:hover{background:#8b5cf6;transform:translateY(-1px)}
-.bgho{background:transparent;color:var(--mut);border:1px solid var(--bdr)}.bgho:hover{border-color:var(--mut);color:var(--txt)}
+.ep:hover{background:rgba(167,139,250,.04)}
+.mth{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:5px;min-width:40px;text-align:center}
+.mp{background:rgba(34,211,160,.1);color:var(--tel)}.mg{background:rgba(59,130,246,.1);color:#60a5fa}
+.ep-p{font-family:'JetBrains Mono',monospace;font-size:.82rem}
+.ep-d{font-size:.74rem;color:var(--mut);margin-left:auto}
+
+.ctas{display:flex;gap:12px;justify-content:center}
+.bpri{background:var(--pur2);color:#fff;border:none;padding:13px 28px;border-radius:10px;font-size:.87rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center}
+.bpri:hover{background:#6d28d9;transform:translateY(-1px)}
+.bsec{background:transparent;color:var(--mut);border:1px solid var(--bd);padding:13px 28px;border-radius:10px;font-size:.87rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center}
+.bsec:hover{border-color:var(--mut);color:var(--txt)}
 </style>
 </head>
 <body>
+<canvas id="cv"></canvas>
 <main>
-  <div class="hd">
-    <div class="pill"><div class="dot"></div>OpenEnv Environment</div>
+  <div class="hero">
+    <div class="live-badge"><div class="pulse"></div>OpenEnv · Grand Finale 2026</div>
     <h1>Enterprise Employee<br>Onboarding Agent</h1>
-    <p class="sub">An OpenEnv environment where an AI agent navigates 12 enterprise IT &amp; HR systems to onboard a new hire — while company policies drift mid-episode without warning.</p>
+    <p class="tagline">An AI agent navigates 12 enterprise IT &amp; HR systems to onboard a new hire — while company policies drift mid-episode without warning.</p>
+    <div class="status-bar">
+      <div class="sdot" id="sdot"></div>
+      <span id="stxt">Checking server&hellip;</span>
+    </div>
   </div>
-  <div class="sbar"><div class="sdot" id="sdot"></div><span id="stxt">Checking server&hellip;</span></div>
+
+  <div class="section-lbl">Live simulation — dept_onboarding · policy drift active</div>
+  <div class="flow-wrap">
+    <div class="systems-grid" id="sg">
+      <div class="sc complete"><div class="si" style="background:rgba(34,211,160,.1)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#22d3a0" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#22d3a0" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="sn">ad_account</div><div class="ss ss-complete">complete</div></div>
+      <div class="sc complete"><div class="si" style="background:rgba(34,211,160,.1)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4h12v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="#22d3a0" stroke-width="1.5"/><path d="M2 4l6 5 6-5" stroke="#22d3a0" stroke-width="1.5"/></svg></div><div class="sn">email_setup</div><div class="ss ss-complete">complete</div></div>
+      <div class="sc complete"><div class="si" style="background:rgba(34,211,160,.1)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="#22d3a0" stroke-width="1.5"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="#22d3a0" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="sn">hrms_reg</div><div class="ss ss-complete">complete</div></div>
+      <div class="sc failed"><div class="si" style="background:rgba(244,63,94,.1)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#f43f5e" stroke-width="1.5"/><path d="M6 6l4 4M10 6l-4 4" stroke="#f43f5e" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="sn">badge_access</div><div class="ss ss-failed">failed</div></div>
+      <div class="sc active"><div class="si" style="background:rgba(167,139,250,.1)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="5" width="12" height="8" rx="1.5" stroke="#a78bfa" stroke-width="1.5"/><path d="M5 5V4a3 3 0 016 0v1" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="sn">payroll</div><div class="ss ss-active">active</div></div>
+      <div class="sc active"><div class="si" style="background:rgba(167,139,250,.1)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="1.5" stroke="#a78bfa" stroke-width="1.5"/><path d="M5 6h6M5 9h4" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="sn">device_alloc</div><div class="ss ss-active">active</div></div>
+      <div class="sc blocked"><div class="si" style="background:rgba(255,255,255,.04)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#4a6a85" stroke-width="1.5"/><path d="M5 8h6" stroke="#4a6a85" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="sn">vpn_setup</div><div class="ss ss-blocked">blocked</div></div>
+      <div class="sc blocked"><div class="si" style="background:rgba(255,255,255,.04)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v4M8 10v4M2 8h4M10 8h4" stroke="#4a6a85" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="sn">compliance</div><div class="ss ss-blocked">blocked</div></div>
+    </div>
+    <div class="prog-row">
+      <div class="prog-bg"><div class="prog-fg" id="pf" style="width:37%"></div></div>
+      <div class="prog-lbl" id="pl">3 / 6 required</div>
+    </div>
+  </div>
+
+  <div class="drift" id="driftBox">
+    <div class="drift-ic"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L9 9H1L5 1z" stroke="#fbbf24" stroke-width="1.2"/><path d="M5 4v2M5 7.2v.4" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+    <div><div class="drift-title">Policy drift detected — v1 to v2</div><div class="drift-body">security=enhanced &middot; badge_zones+=server_room &middot; leave_policy=enhanced<br>badge_access and device_allocation invalidated. Call check_policy then resubmit.</div></div>
+  </div>
+
   <div class="stats">
-    <div class="scard"><div class="sv">12</div><div class="sl">Systems</div></div>
-    <div class="scard"><div class="sv">3</div><div class="sl">Task Levels</div></div>
-    <div class="scard"><div class="sv">55</div><div class="sl">Max Steps</div></div>
-    <div class="scard"><div class="sv">2x</div><div class="sl">Policy Drifts</div></div>
+    <div class="stat"><div class="sv vp">12</div><div class="sl">Systems</div></div>
+    <div class="stat"><div class="sv vt">3</div><div class="sl">Task levels</div></div>
+    <div class="stat"><div class="sv vy">2</div><div class="sl">Policy drifts</div></div>
+    <div class="stat"><div class="sv vb">55</div><div class="sl">Max steps</div></div>
   </div>
-  <div class="sec">Tasks</div>
-  <div class="tcards">
-    <div class="tc e"><div class="th"><span class="tn">basic_onboarding</span><span class="dif e">Easy</span></div><p class="td">3-system onboarding: AD, email, HRMS. No policy drift. Agent learns the action space.</p><div class="tm">3 systems &middot; 20 steps &middot; no drift</div></div>
-    <div class="tc m"><div class="th"><span class="tn">dept_onboarding</span><span class="dif m">Medium</span></div><p class="td">6 systems including payroll, badge access, and device allocation. Policy changes once at step 15.</p><div class="tm">6 systems &middot; 35 steps &middot; 1 drift</div></div>
-    <div class="tc h"><div class="th"><span class="tn">enterprise_onboarding</span><span class="dif h">Hard</span></div><p class="td">12 systems with VPN, compliance training, and health insurance. Two policy drifts invalidate completed work.</p><div class="tm">12 systems &middot; 55 steps &middot; 2 drifts</div></div>
+
+  <div class="tasks">
+    <div class="tc e"><div class="tch"><span class="tcn">basic_onboarding</span><span class="tcd de">Easy</span></div><p class="tcb">3 systems — AD, email, HRMS. No drift. Agent learns the action loop.</p><div class="tcm">3 systems &middot; 20 steps &middot; score 0.807</div></div>
+    <div class="tc m"><div class="tch"><span class="tcn">dept_onboarding</span><span class="tcd dm">Medium</span></div><p class="tcb">6 systems. Policy drifts once at step 15, invalidating completed work.</p><div class="tcm">6 systems &middot; 35 steps &middot; score 0.866</div></div>
+    <div class="tc h"><div class="tch"><span class="tcn">enterprise_onboarding</span><span class="tcd dh">Hard</span></div><p class="tcb">12 systems. Two drifts. Systems get invalidated twice.</p><div class="tcm">12 systems &middot; 55 steps &middot; score 0.751</div></div>
   </div>
-  <div class="sec">API Endpoints</div>
-  <div class="ep-box">
-    <div class="ep"><span class="mth p">POST</span><span class="epath">/reset</span><span class="edsc">Start a new onboarding episode</span></div>
-    <div class="ep"><span class="mth p">POST</span><span class="epath">/step</span><span class="edsc">Execute one action</span></div>
-    <div class="ep"><span class="mth g">GET</span><span class="epath">/state</span><span class="edsc">Inspect current episode state</span></div>
-    <div class="ep"><span class="mth g">GET</span><span class="epath">/tasks</span><span class="edsc">List all tasks</span></div>
-    <div class="ep"><span class="mth g">GET</span><span class="epath">/render</span><span class="edsc">ASCII onboarding checklist snapshot</span></div>
-    <div class="ep"><span class="mth g">GET</span><span class="epath">/health</span><span class="edsc">Liveness probe</span></div>
+
+  <div class="section-lbl" style="margin-bottom:14px">Live agent terminal</div>
+  <div class="term">
+    <div class="term-top">
+      <div class="tdot" style="background:#f43f5e"></div>
+      <div class="tdot" style="background:#fbbf24"></div>
+      <div class="tdot" style="background:#22d3a0"></div>
+      <span class="tl">agent · dept_onboarding · recovering from drift</span>
+    </div>
+    <div class="term-body" id="tb">
+      <div><span class="tc-mut">$</span> <span class="tc-cmd">POST /step</span> <span class="tc-mut">{"action":"check_policy"}</span></div>
+      <div id="tlines"></div>
+      <span class="blink">█</span>
+    </div>
   </div>
-  <div class="acts">
-    <a href="/docs" class="btn bpri">&#9889; Interactive API Docs</a>
-    <a href="https://github.com/TheKshitij/openenv-onboarding" target="_blank" class="btn bgho">GitHub &rarr;</a>
+
+  <div class="section-lbl" style="margin-bottom:14px">API endpoints</div>
+  <div class="ep-wrap">
+    <div class="ep"><span class="mth mp">POST</span><span class="ep-p">/reset</span><span class="ep-d">Start a new onboarding episode</span></div>
+    <div class="ep"><span class="mth mp">POST</span><span class="ep-p">/step</span><span class="ep-d">Execute one agent action</span></div>
+    <div class="ep"><span class="mth mg">GET</span><span class="ep-p">/state</span><span class="ep-d">Inspect current episode state</span></div>
+    <div class="ep"><span class="mth mg">GET</span><span class="ep-p">/render</span><span class="ep-d">ASCII onboarding checklist</span></div>
+    <div class="ep"><span class="mth mg">GET</span><span class="ep-p">/tasks</span><span class="ep-d">List all tasks with metadata</span></div>
+    <div class="ep"><span class="mth mg">GET</span><span class="ep-p">/health</span><span class="ep-d">Liveness probe</span></div>
+  </div>
+
+  <div class="ctas">
+    <a href="/docs" class="bpri">Interactive API docs</a>
+    <a href="https://github.com/TheKshitij/openenv-onboarding" target="_blank" class="bsec">GitHub</a>
   </div>
 </main>
+
 <script>
 async function ping(){
   const d=document.getElementById('sdot'),t=document.getElementById('stxt');
   try{
     const r=await fetch('/health'),j=await r.json();
-    d.className='sdot ok';
-    t.innerHTML='<span style="color:#22d3a0">&#9679; LIVE</span>&nbsp;&nbsp;'+j.status+' &middot; '+j.service;
-  }catch(e){d.className='sdot err';t.textContent='Server unreachable';}
+    d.className='sdot';d.style.background='#22d3a0';
+    t.innerHTML='<span style="color:#22d3a0">LIVE</span>&nbsp;&nbsp;status: "'+j.status+'" &middot; service: "'+j.service+'"';
+  }catch(e){
+    d.style.background='#f43f5e';
+    t.textContent='Server unreachable';
+  }
 }
 ping();setInterval(ping,10000);
+
+const termSeq=[
+  {c:'tc-out',t:'200 OK — Policy v2 active'},
+  {c:'tc-out',t:'security=enhanced  device=laptop  leave=enhanced'},
+  {c:'tc-out',t:'badge_zones=[main_lobby, floor_3, server_room]'},
+  {c:'tc-warn',t:'badge_access FAILED — old zones do not match v2'},
+  {c:'tc-cmd',t:'> escalate badge_access zone_mismatch_with_policy_v2'},
+  {c:'tc-out',t:'Escalated. badge_access reset to IN_PROGRESS.'},
+  {c:'tc-cmd',t:'> submit badge_access zones=main_lobby,floor_3,server_room,access_level=standard'},
+  {c:'tc-out',t:'badge_access COMPLETE. reward=+0.20'},
+];
+let ti=0;
+function typeNext(){
+  if(ti>=termSeq.length){ti=0;document.getElementById('tlines').innerHTML='';}
+  const d=document.createElement('div');
+  d.className=termSeq[ti].c;d.textContent=termSeq[ti].t;
+  document.getElementById('tlines').appendChild(d);
+  ti++;
+  setTimeout(typeNext,700+Math.random()*500);
+}
+setTimeout(typeNext,1000);
+
+const states=[
+  {cards:['complete','complete','complete','failed','active','active','blocked','blocked'],p:'37%',l:'3 / 6 required'},
+  {cards:['complete','complete','complete','active','complete','active','blocked','blocked'],p:'50%',l:'3 / 6 required'},
+  {cards:['complete','complete','complete','active','complete','complete','pending','blocked'],p:'50%',l:'3 / 6 required'},
+  {cards:['complete','complete','complete','complete','complete','complete','active','blocked'],p:'67%',l:'4 / 6 required'},
+  {cards:['complete','complete','complete','complete','complete','complete','complete','pending'],p:'83%',l:'5 / 6 required'},
+];
+let si=0;
+function cycleCards(){
+  si=(si+1)%states.length;
+  const s=states[si];
+  document.querySelectorAll('#sg .sc').forEach((c,i)=>{
+    c.className='sc '+s.cards[i];
+    const ss=c.querySelector('.ss');
+    ss.className='ss ss-'+s.cards[i];
+    ss.textContent=s.cards[i];
+  });
+  document.getElementById('pf').style.width=s.p;
+  document.getElementById('pl').textContent=s.l;
+}
+setInterval(cycleCards,2800);
+
+let dv=true;
+setInterval(()=>{
+  dv=!dv;
+  document.getElementById('driftBox').style.opacity=dv?'1':'0.2';
+  document.getElementById('driftBox').style.transition='opacity .5s';
+},3500);
+
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+let W,H,nodes=[];
+function initCanvas(){
+  W=cv.width=innerWidth;H=cv.height=innerHeight;nodes=[];
+  for(let i=0;i<20;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4});
+}
+function drawCanvas(){
+  cx.clearRect(0,0,W,H);
+  nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1});
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+    const d=Math.hypot(nodes[i].x-nodes[j].x,nodes[i].y-nodes[j].y);
+    if(d<200){cx.strokeStyle='rgba(26,48,69,'+(1-d/200)*.6+')';cx.lineWidth=.8;cx.beginPath();cx.moveTo(nodes[i].x,nodes[i].y);cx.lineTo(nodes[j].x,nodes[j].y);cx.stroke()}
+  }
+  nodes.forEach(n=>{cx.fillStyle='rgba(167,139,250,.4)';cx.beginPath();cx.arc(n.x,n.y,2,0,Math.PI*2);cx.fill()});
+  requestAnimationFrame(drawCanvas);
+}
+window.addEventListener('resize',initCanvas);
+initCanvas();drawCanvas();
 </script>
 </body>
 </html>"""
