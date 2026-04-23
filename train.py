@@ -186,7 +186,7 @@ def main():
         per_device_train_batch_size=BATCH_SIZE,
         gradient_accumulation_steps=GRAD_ACCUM,
         learning_rate=LR,
-        logging_steps=10,
+        logging_steps=5,
         save_steps=SAVE_STEPS,
         bf16=torch.cuda.is_bf16_supported(),
         fp16=not torch.cuda.is_bf16_supported(),
@@ -208,6 +208,11 @@ def main():
     print(f"Training {MODEL_ID} on {TASK} for {NUM_STEPS} steps...")
     print("Watch the 'reward' column — it should climb from ~0.5 to ~0.75+ after 100 steps.")
     trainer.train()
+
+    print("\n=== REWARD IMPROVEMENT SUMMARY ===")
+    for log in trainer.state.log_history:
+        if 'reward' in log:
+            print(f"  step={log.get('step',0):3d}  reward={log['reward']:.4f}")
 
     print(f"\nSaving to {OUTPUT_DIR}")
     trainer.save_model(OUTPUT_DIR)
