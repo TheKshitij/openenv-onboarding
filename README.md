@@ -15,8 +15,20 @@ across 3–12 IT and HR systems, while company policies drift mid-episode withou
 
 Submitted to the **Meta PyTorch OpenEnv Hackathon 2026 — Grand Finale**.
 
-**Themes:** Long-Horizon Planning & Instruction Following (Theme 2) + World Modeling: Professional Tasks (Theme 3.1)
+### Theme Alignment
+
+| Theme | Why this qualifies |
+|-------|-------------------|
+| **#2 — Long-Horizon Planning & Instruction Following** | Agent must sequence actions across up to 55 steps, track 12 interdependent systems, and recover from mid-episode policy invalidations — without losing state. |
+| **#3.1 — World Modeling: Professional Tasks** | Simulates the real enterprise IT/HR onboarding pipeline at Indian IT firms, with partial observability, dynamic policy constraints, and realistic error states. |
+
 **Bonus prizes targeted:** Scale AI (HR & IT long-horizon workflows) + Patronus AI (schema/policy drift)
+
+### Submission Links
+- 🌐 **HF Space (live environment):** *(add link)*
+- 📓 **Colab Training Notebook:** *(add link)*
+- 📝 **Blog Post / Video:** *(add link)*
+- 📈 **Reward Plot:** [`reward_improvement.png`](./reward_improvement.png)
 
 ---
 
@@ -131,7 +143,9 @@ Dense reward every step, providing signal throughout the trajectory:
 | Per-failed-system | −0.04 | Each required system in FAILED state |
 | Violation accumulator | −0.02 | Per cumulative violation |
 | Policy drift signal | −0.05 | Step when drift fires |
-| check_policy | +0.02 | Agent reads policy proactively |
+| check_policy (first call per version) | +0.05 | Agent reads updated policy — once only |
+| check_policy (repeated call) | +0.00 | Already known — no reward farming |
+| Invalid format (markdown/chatty) | −0.10 | Model must output plain commands only |
 | escalate (valid) | +0.03 | Unblocks a failed system for retry |
 
 **Design intent:** Agents that learn to call `check_policy` proactively after a drift
@@ -142,10 +156,23 @@ violations. The reward difference is large enough to train this behavior explici
 
 ## Training Story (GRPO with TRL)
 
-The key learning signal for this environment: an untrained agent ignores `policy_drift_event`
-in the observation and keeps resubmitting with stale values, accumulating violations and
-burning steps. A trained agent learns to call `check_policy` immediately after any drift
-event, then update its submission values accordingly.
+The key failure mode of an untrained agent: it ignores `policy_drift_event` in the
+observation and keeps resubmitting with stale values, accumulating violations and burning steps.
+A GRPO-trained agent learns to call `check_policy` immediately after any drift event, then
+escalate failed systems and resubmit with corrected values.
+
+### Before vs After — Behavioral Comparison
+
+| Scenario | Untrained Agent | GRPO-Trained Agent |
+|----------|----------------|-------------------|
+| Policy drift fires at step 15 | Ignores `policy_drift_event`; resubmits stale `security_level=basic` | Calls `check_policy` immediately; reads v2 values |
+| `ad_account` FAILED after drift | Retries blindly; accumulates violations | Escalates first, then resubmits with `security_level=enhanced` |
+| Badge zones invalidated | Submits old zones; fails repeatedly | Reads new `badge_zones` from policy and resubmits correctly |
+| Score after 35 steps | ~0.42 (5–8 violations) | ~0.79–0.87 (0–1 violations) |
+
+### Reward Improvement
+
+![Reward Improvement](./reward_improvement.png)
 
 ```
 Untrained (step 0):   avg_score ≈ 0.42  violations_per_episode ≈ 8
@@ -156,12 +183,13 @@ Trained (step 200):   avg_score ≈ 0.79  violations_per_episode ≈ 0.5
 Run training in Colab (free T4 GPU, ~40 minutes):
 
 ```bash
-pip install trl unsloth pydantic openai -q
+pip install trl unsloth pydantic openai matplotlib -q
 python train.py
 ```
 
 The training script uses `GRPOTrainer` from HuggingFace TRL with `Qwen2.5-1.5B-Instruct`
 as the base model. The reward function wraps the environment step reward directly.
+A `reward_improvement.png` plot is saved automatically after training.
 
 ---
 

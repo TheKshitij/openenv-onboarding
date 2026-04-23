@@ -408,6 +408,7 @@ class OnboardingEnv:
             "drift_steps":       list(cfg["drift_steps"]),
             "drift_index":       0,
             "policy_drift_event":"",
+            "last_checked_policy": "",   # prevents check_policy reward farming
             "total_reward":      0.0,
             "violations":        0,
             "done":              False,
@@ -432,8 +433,13 @@ class OnboardingEnv:
         # 2. Policy drift check
         drift_reward = self._check_drift()
 
-        # 3. Step reward
-        step_reward = self._step_reward(action_reward + drift_reward)
+        # 3. Decomposed step reward (Problem 2)
+        r_progress   = self._reward_progress()
+        r_violations = self._reward_violations()
+        r_completion = self._reward_completion()
+        step_reward  = round(
+            r_progress + r_violations + r_completion + action_reward + drift_reward, 4
+        )
         ep["total_reward"] += step_reward
 
         # 4. Termination
@@ -449,12 +455,18 @@ class OnboardingEnv:
             done=done,
             score=round(score, 4),
             info={
-                "step_reward":   round(step_reward, 4),
-                "total_reward":  round(ep["total_reward"], 4),
-                "violations":    ep["violations"],
-                "score":         round(score, 4),
-                "action_result": msg,
-                "drift_event":   ep["policy_drift_event"],
+                "step_reward":      round(step_reward, 4),
+                "total_reward":     round(ep["total_reward"], 4),
+                "violations":       ep["violations"],
+                "score":            round(score, 4),
+                "action_result":    msg,
+                "drift_event":      ep["policy_drift_event"],
+                # ── Decomposed reward breakdown (Problem 2b) ──
+                "reward_progress":  round(r_progress, 4),
+                "reward_violation": round(r_violations, 4),
+                "reward_completion":round(r_completion, 4),
+                "reward_action":    round(action_reward, 4),
+                "reward_drift":     round(drift_reward, 4),
             },
         )
 
@@ -536,7 +548,15 @@ class OnboardingEnv:
         )
 
     def _apply_action(self, action_str: str) -> Tuple[float, str]:
-        parts   = action_str.strip().split(None, 2)
+        # ── Format compliance check (Problem 1b) ─────────────────────────────
+        # Penalise the model for outputting markdown, backticks, or multi-line
+        # explanations instead of a clean command string.
+        _raw = action_str.strip()
+        _forbidden = ('```', '**', '##', '\n\n', '* ', '> ')
+        if any(tok in _raw for tok in _forbidden):
+            return -0.10, "Invalid format: output a single plain-text command only."
+
+        parts   = _raw.split(None, 2)
         if not parts or parts[0] == "hold":
             return 0.0, "hold — no action taken."
 
@@ -600,7 +620,7 @@ class OnboardingEnv:
             # ── check_policy ─────────────────────────────────────────────────
             elif cmd == "check_policy":
                 p = ep["policy"]
-                return 0.02, (
+                policy_msg = (
                     f"Current policy {p.version.value}: "
                     f"it_security={p.it_security_level}, "
                     f"device={p.device_type}, "
@@ -608,6 +628,12 @@ class OnboardingEnv:
                     f"badge_zones={p.badge_zones}, "
                     f"compliance_modules={p.compliance_modules}"
                 )
+                # Only reward the FIRST check per policy version.
+                # Repeated checks after already knowing the policy get 0.
+                if ep["last_checked_policy"] != p.version.value:
+                    ep["last_checked_policy"] = p.version.value
+                    return 0.05, policy_msg   # raised from 0.02 — first-check is meaningful
+                return 0.0, policy_msg        # already checked this version — no reward
 
             # ── escalate ────────────────────────────────────────────────────
             elif cmd == "escalate":
@@ -681,36 +707,42 @@ class OnboardingEnv:
                 return -0.05  # small drift penalty to signal disruption
         return 0.0
 
+    # ── Decomposed reward components (Problem 2a) ───────────────────────────
+
+    def _reward_progress(self) -> float:
+        """Continuous progress bonus: +0.10 × (completed / total_required)."""
+        ep = self._ep
+        total_req = sum(1 for s in ep["systems"] if s["required"])
+        completed = sum(
+            1 for s in ep["systems"]
+            if s["required"] and s["status"] == SystemStatus.COMPLETE
+        )
+        if total_req == 0:
+            return 0.0
+        return round((completed / total_req) * 0.10, 4)
+
+    def _reward_violations(self) -> float:
+        """Penalty for failed systems and cumulative violations."""
+        ep = self._ep
+        failed = sum(
+            1 for s in ep["systems"]
+            if s["required"] and s["status"] == SystemStatus.FAILED
+        )
+        return round(-(failed * 0.04) - (ep["violations"] * 0.02), 4)
+
+    def _reward_completion(self) -> float:
+        """One-time +1.0 bonus when every required system is complete."""
+        return 1.0 if self._all_required_complete() else 0.0
+
     def _step_reward(self, action_delta: float) -> float:
-        """Dense step reward."""
-        ep     = self._ep
-        reward = 0.0
-        total_req, completed, failed, blocked = 0, 0, 0, 0
-
-        for st in ep["systems"]:
-            if st["required"]:
-                total_req += 1
-                if st["status"] == SystemStatus.COMPLETE:
-                    completed += 1
-                elif st["status"] == SystemStatus.FAILED:
-                    failed    += 1
-                elif st["status"] == SystemStatus.BLOCKED:
-                    blocked   += 1
-
-        # Progress bonus
-        prog_pct = completed / total_req if total_req > 0 else 0
-        reward  += prog_pct * 0.10
-
-        # Penalty for failures and violations
-        reward -= failed   * 0.04
-        reward -= ep["violations"] * 0.02
-
-        # Completion bonus (all required done)
-        if self._all_required_complete():
-            reward += 1.0
-
-        reward += action_delta
-        return round(reward, 4)
+        """Legacy wrapper — kept for backward compatibility with external callers."""
+        return round(
+            self._reward_progress()
+            + self._reward_violations()
+            + self._reward_completion()
+            + action_delta,
+            4,
+        )
 
     def _all_required_complete(self) -> bool:
         return all(
