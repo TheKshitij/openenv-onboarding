@@ -25,7 +25,8 @@ Submitted to the **Meta PyTorch OpenEnv Hackathon 2026 — Grand Finale**.
 **Bonus prizes targeted:** Scale AI (HR & IT long-horizon workflows) + Patronus AI (schema/policy drift)
 
 ### Submission Links
-- 🌐 **HF Space (live environment):** *(add link)*
+- 🌐 **HF Space (live environment):** [importkk/openenv-onboarding](https://huggingface.co/spaces/importkk/openenv-onboarding)
+- 📂 **GitHub Repository:** [TheKshitij/openenv-onboarding](https://github.com/TheKshitij/openenv-onboarding)
 - 📓 **Colab Training Notebook:** *(add link)*
 - 📝 **Blog Post / Video:** *(add link)*
 - 📈 **Reward Plot:** [`reward_improvement.png`](./reward_improvement.png)
