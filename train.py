@@ -16,13 +16,13 @@ from typing import List
 
 # ── Config ────────────────────────────────────────────────────────────────────
 MODEL_ID      = "Qwen/Qwen2.5-1.5B-Instruct"   # small enough for free Colab T4
-USE_UNSLOTH   = False                            # set True if unsloth is installed
+USE_UNSLOTH   = True                             # set True if unsloth is installed
 MAX_NEW_TOKENS= 80
 BATCH_SIZE    = 4
 GRAD_ACCUM    = 2
 LR            = 5e-6
-NUM_STEPS     = 200                              # ~40 min on T4; increase for better results
-SAVE_STEPS    = 50
+NUM_STEPS     = 500                              # ~40 min on T4 with Unsloth; increase for better results
+SAVE_STEPS    = 100
 TASK          = "dept_onboarding"               # medium task shows clearest improvement
 SEED          = 42
 OUTPUT_DIR    = "./onboarding-grpo-ckpt"
