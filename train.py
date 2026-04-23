@@ -36,6 +36,18 @@ if USE_UNSLOTH:
     model, tokenizer = FastLanguageModel.from_pretrained(
         MODEL_ID, max_seq_length=1024, dtype=None, load_in_4bit=True
     )
+    # Attach LoRA adapters — required before fine-tuning a quantized model
+    model = FastLanguageModel.get_peft_model(
+        model,
+        r=16,                          # LoRA rank (16 is a good balance)
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                        "gate_proj", "up_proj", "down_proj"],
+        lora_alpha=16,
+        lora_dropout=0.0,
+        bias="none",
+        use_gradient_checkpointing="unsloth",
+        random_state=42,
+    )
     FastLanguageModel.for_training(model)
 else:
     from transformers import AutoModelForCausalLM, AutoTokenizer
