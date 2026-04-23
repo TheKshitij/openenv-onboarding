@@ -159,263 +159,148 @@ async def health():
 
 @app.get("/docs", include_in_schema=False)
 async def custom_docs():
-    DOCS_PAGE = """
-<!DOCTYPE html>
+    DOCS_PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>API Docs — OpenEnv Onboarding Agent</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Control Center \u2014 OpenEnv API</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
 <style>
-/* ── Base Reset ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg:    #050f1c;
-  --s1:    #0a1828;
-  --s2:    #0d1f30;
-  --bd:    #1a3045;
-  --txt:   #e2edf8;
-  --mut:   #4a6a85;
-  --pur:   #a78bfa;
-  --pur2:  #7c3aed;
-  --tel:   #22d3a0;
-  --yel:   #fbbf24;
-  --red:   #f43f5e;
-  --blu:   #60a5fa;
-  --green: #22d3a0;
-}
-html, body { background: var(--bg) !important; color: var(--txt) !important; font-family: 'Inter', sans-serif !important; }
-
-/* ── Custom Header Bar ── */
-.custom-header {
-  background: var(--s1);
-  border-bottom: 1px solid var(--bd);
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-.custom-header .logo-area { display: flex; align-items: center; gap: 12px; }
-.custom-header .badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(34,211,160,.08); border: 1px solid rgba(34,211,160,.2);
-  color: var(--tel); border-radius: 999px; padding: 4px 12px;
-  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-}
-.custom-header .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--tel); animation: pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.7)} }
-.custom-header h1 {
-  font-size: 1.1rem; font-weight: 700; letter-spacing: -.02em;
-  background: linear-gradient(135deg, #e2edf8, #a78bfa 60%, #22d3a0);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.custom-header .version { font-size: .72rem; font-family: 'JetBrains Mono', monospace; color: var(--mut); padding: 2px 8px; background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.2); border-radius: 4px; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-.header-right a {
-  font-size: .8rem; font-weight: 500; color: var(--mut); text-decoration: none;
-  padding: 7px 16px; border: 1px solid var(--bd); border-radius: 8px; transition: all .15s;
-}
-.header-right a:hover { border-color: var(--mut); color: var(--txt); }
-.header-right .btn-demo {
-  background: var(--pur2); color: #fff; border-color: transparent;
-}
-.header-right .btn-demo:hover { background: #6d28d9; }
-
-/* ── Swagger UI overrides ── */
-.swagger-ui { font-family: 'Inter', sans-serif !important; }
-.swagger-ui .topbar { display: none !important; }
-.swagger-ui .info { display: none !important; }
-.swagger-ui .scheme-container { background: var(--s1) !important; border-bottom: 1px solid var(--bd) !important; padding: 12px 20px !important; margin: 0 !important; }
-.swagger-ui .wrapper { padding: 0 24px 48px !important; max-width: 1000px !important; margin: 0 auto !important; }
-
-.swagger-ui .opblock-tag {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid var(--bd) !important;
-  color: var(--txt) !important;
-  font-family: 'Inter', sans-serif !important;
-  font-size: .72rem !important;
-  font-weight: 600 !important;
-  letter-spacing: .1em !important;
-  text-transform: uppercase !important;
-  padding: 20px 0 10px !important;
-  margin-top: 8px !important;
-}
-.swagger-ui .opblock-tag small { color: var(--mut) !important; font-size: .7rem !important; }
-.swagger-ui .opblock-tag svg { fill: var(--mut) !important; }
-
-/* Operation blocks */
-.swagger-ui .opblock {
-  background: var(--s1) !important;
-  border: 1px solid var(--bd) !important;
-  border-radius: 12px !important;
-  margin-bottom: 10px !important;
-  box-shadow: none !important;
-  overflow: hidden !important;
-}
-.swagger-ui .opblock:hover { border-color: var(--pur) !important; }
-.swagger-ui .opblock.is-open { border-color: var(--pur) !important; }
-.swagger-ui .opblock .opblock-summary { padding: 12px 16px !important; cursor: pointer; }
-.swagger-ui .opblock .opblock-summary-method {
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: .72rem !important;
-  font-weight: 700 !important;
-  border-radius: 6px !important;
-  padding: 4px 10px !important;
-  min-width: 58px !important;
-  text-align: center !important;
-}
-.swagger-ui .opblock.opblock-post .opblock-summary-method { background: rgba(34,211,160,.15) !important; color: var(--tel) !important; }
-.swagger-ui .opblock.opblock-get .opblock-summary-method { background: rgba(96,165,250,.15) !important; color: var(--blu) !important; }
-.swagger-ui .opblock.opblock-put .opblock-summary-method { background: rgba(251,191,36,.15) !important; color: var(--yel) !important; }
-.swagger-ui .opblock.opblock-delete .opblock-summary-method { background: rgba(244,63,94,.15) !important; color: var(--red) !important; }
-.swagger-ui .opblock-summary-path {
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: .85rem !important;
-  font-weight: 600 !important;
-  color: var(--txt) !important;
-}
-.swagger-ui .opblock-summary-description { font-size: .8rem !important; color: var(--mut) !important; }
-.swagger-ui .opblock-summary-control svg { fill: var(--mut) !important; }
-
-/* Expanded body */
-.swagger-ui .opblock-body { background: var(--bg) !important; border-top: 1px solid var(--bd) !important; padding: 16px !important; }
-.swagger-ui .opblock-section-header { background: transparent !important; border-bottom: 1px solid var(--bd) !important; padding: 8px 0 !important; }
-.swagger-ui .opblock-section-header h4 { font-family: 'Inter', sans-serif !important; font-size: .7rem !important; font-weight: 600 !important; color: var(--mut) !important; text-transform: uppercase !important; letter-spacing: .08em !important; }
-
-/* Parameters table */
-.swagger-ui table { background: transparent !important; }
-.swagger-ui .parameters-col_name { color: var(--pur) !important; font-family: 'JetBrains Mono', monospace !important; font-size: .8rem !important; }
-.swagger-ui .parameter__name { color: var(--pur) !important; font-family: 'JetBrains Mono', monospace !important; }
-.swagger-ui .parameter__type { color: var(--tel) !important; font-family: 'JetBrains Mono', monospace !important; font-size: .73rem !important; }
-.swagger-ui .parameter__in { color: var(--mut) !important; font-size: .7rem !important; }
-.swagger-ui td { border-bottom: 1px solid var(--bd) !important; color: var(--txt) !important; }
-.swagger-ui th { color: var(--mut) !important; font-size: .7rem !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .06em !important; border-bottom: 1px solid var(--bd) !important; }
-
-/* Input fields */
-.swagger-ui input[type=text], .swagger-ui textarea, .swagger-ui select {
-  background: var(--bg) !important;
-  border: 1px solid var(--bd) !important;
-  border-radius: 8px !important;
-  color: var(--txt) !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: .82rem !important;
-  padding: 8px 12px !important;
-  outline: none !important;
-}
-.swagger-ui input[type=text]:focus, .swagger-ui textarea:focus {
-  border-color: var(--pur) !important;
-  box-shadow: 0 0 0 3px rgba(167,139,250,.1) !important;
-}
-
-/* Buttons */
-.swagger-ui .btn {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
-  font-size: .82rem !important;
-  padding: 8px 18px !important;
-  transition: all .15s !important;
-  border: none !important;
-}
-.swagger-ui .btn.execute {
-  background: var(--pur2) !important;
-  color: #fff !important;
-}
-.swagger-ui .btn.execute:hover { background: #6d28d9 !important; transform: translateY(-1px) !important; }
-.swagger-ui .btn.cancel { background: transparent !important; border: 1px solid var(--bd) !important; color: var(--mut) !important; }
-.swagger-ui .btn.cancel:hover { border-color: var(--red) !important; color: var(--red) !important; }
-.swagger-ui .btn.try-out__btn { background: transparent !important; border: 1px solid var(--bd) !important; color: var(--mut) !important; }
-.swagger-ui .btn.try-out__btn:hover { border-color: var(--pur) !important; color: var(--pur) !important; }
-.swagger-ui .btn.authorize { background: transparent !important; border: 1px solid var(--tel) !important; color: var(--tel) !important; }
-
-/* Response area */
-.swagger-ui .responses-inner { background: var(--bg) !important; }
-.swagger-ui .response-col_status { color: var(--tel) !important; font-family: 'JetBrains Mono', monospace !important; font-weight: 700 !important; }
-.swagger-ui .response-col_description__inner p { color: var(--mut) !important; font-size: .8rem !important; }
-.swagger-ui .microlight, .swagger-ui pre.microlight {
-  background: #020c18 !important;
-  border: 1px solid var(--bd) !important;
-  border-radius: 8px !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: .78rem !important;
-  color: var(--tel) !important;
-  padding: 12px !important;
-}
-.swagger-ui .highlight-code { background: #020c18 !important; border-radius: 8px !important; }
-.swagger-ui .highlight-code code { color: var(--tel) !important; font-family: 'JetBrains Mono', monospace !important; font-size: .78rem !important; }
-.swagger-ui code { color: var(--pur) !important; font-family: 'JetBrains Mono', monospace !important; background: rgba(167,139,250,.08) !important; padding: 1px 5px !important; border-radius: 4px !important; }
-
-/* Response code pills */
-.swagger-ui .responses-table .response { border-bottom: 1px solid var(--bd) !important; }
-.swagger-ui .response-undocumented { color: var(--mut) !important; }
-
-/* Model / Schema */
-.swagger-ui .model-box { background: #020c18 !important; border: 1px solid var(--bd) !important; border-radius: 8px !important; padding: 12px !important; }
-.swagger-ui .model { color: var(--txt) !important; font-family: 'JetBrains Mono', monospace !important; font-size: .78rem !important; }
-.swagger-ui .model-title { color: var(--pur) !important; font-weight: 700 !important; }
-.swagger-ui .model .property.primitive { color: var(--tel) !important; }
-.swagger-ui section.models { background: var(--s1) !important; border: 1px solid var(--bd) !important; border-radius: 12px !important; margin-top: 24px !important; padding: 16px !important; }
-.swagger-ui section.models h4 { color: var(--txt) !important; font-size: .72rem !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .08em !important; }
-.swagger-ui .model-container { background: transparent !important; border: none !important; }
-
-/* Scrollbars */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--mut); }
-
-/* Loading state */
-.swagger-ui .loading-container { background: var(--bg) !important; }
-.swagger-ui .loading-container .loading::after { color: var(--pur) !important; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050f1c;--s1:#0a1828;--bd:#1a3045;--txt:#e2edf8;--mut:#4a6a85;--pur:#a78bfa;--pur2:#7c3aed;--tel:#22d3a0;--yel:#fbbf24;--red:#f43f5e;--blu:#60a5fa}
+html,body{min-height:100vh;background:var(--bg)!important;color:var(--txt)!important;font-family:'Inter',sans-serif!important}
+canvas#bg{position:fixed;inset:0;z-index:0;opacity:.18;pointer-events:none}
+.hdr{position:sticky;top:0;z-index:999;background:rgba(10,24,40,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(26,48,69,.9);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.hdr-logo span{display:block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--tel);margin-bottom:1px}
+.hdr-logo strong{font-size:.95rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(120deg,#e2edf8,#a78bfa 55%,#22d3a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sep{width:1px;height:28px;background:var(--bd)}
+.spill{display:flex;align-items:center;gap:6px;border-radius:999px;padding:5px 13px;font-size:.7rem;font-family:'JetBrains Mono',monospace}
+.spill-agent{background:rgba(34,211,160,.07);border:1px solid rgba(34,211,160,.2);color:var(--tel)}
+.spill-policy{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);color:var(--yel)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;animation:dp 2s ease-in-out infinite}
+.dot-g{background:var(--tel)}.dot-y{background:var(--yel)}
+@keyframes dp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.hl{font-size:.78rem;font-weight:500;color:var(--mut);text-decoration:none;padding:6px 14px;border:1px solid var(--bd);border-radius:8px;transition:all .15s;background:transparent}
+.hl:hover{border-color:var(--mut);color:var(--txt)}
+.hl-cta{background:var(--pur2)!important;color:#fff!important;border-color:transparent!important;font-weight:600}
+.hl-cta:hover{background:#6d28d9!important;transform:translateY(-1px)}
+.banner{position:relative;z-index:1;background:linear-gradient(135deg,rgba(124,58,237,.07),rgba(34,211,160,.04));border-bottom:1px solid var(--bd);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.banner-text h2{font-size:1rem;font-weight:700;letter-spacing:-.02em;margin-bottom:5px}
+.banner-text p{font-size:.78rem;color:var(--mut);line-height:1.65;max-width:560px}
+.kpis{display:flex;gap:8px;flex-shrink:0}
+.kpi{background:rgba(10,24,40,.7);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;text-align:center;min-width:58px}
+.kv{font-size:1.25rem;font-weight:800;letter-spacing:-.03em}
+.kl{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-top:2px}
+.kv-p{color:var(--pur)}.kv-t{color:var(--tel)}.kv-y{color:var(--yel)}
+#swagger-ui{position:relative;z-index:1}
+.swagger-ui{font-family:'Inter',sans-serif!important}
+.swagger-ui .topbar,.swagger-ui .info{display:none!important}
+.swagger-ui .scheme-container{background:rgba(10,24,40,.7)!important;backdrop-filter:blur(8px)!important;border-bottom:1px solid var(--bd)!important;padding:10px 28px!important;margin:0!important}
+.swagger-ui .wrapper{padding:20px 28px 80px!important;max-width:1040px!important;margin:0 auto!important}
+.swagger-ui .opblock-tag{background:transparent!important;border:none!important;border-bottom:1px solid var(--bd)!important;color:var(--txt)!important;font-family:'Inter',sans-serif!important;font-size:.67rem!important;font-weight:700!important;letter-spacing:.12em!important;text-transform:uppercase!important;padding:22px 0 10px!important;margin-top:4px!important}
+.swagger-ui .opblock-tag small{color:var(--mut)!important;font-size:.67rem!important}
+.swagger-ui .opblock-tag svg{fill:var(--mut)!important}
+.swagger-ui .opblock{background:rgba(10,24,40,.75)!important;backdrop-filter:blur(10px)!important;border:1px solid var(--bd)!important;border-radius:14px!important;margin-bottom:10px!important;box-shadow:0 2px 20px rgba(0,0,0,.3)!important;overflow:hidden!important;transition:border-color .2s,box-shadow .2s!important}
+.swagger-ui .opblock-post{background:linear-gradient(135deg,rgba(34,211,160,.05),rgba(10,24,40,.75))!important}
+.swagger-ui .opblock-get{background:linear-gradient(135deg,rgba(96,165,250,.05),rgba(10,24,40,.75))!important}
+.swagger-ui .opblock:hover{box-shadow:0 4px 28px rgba(124,58,237,.14)!important}
+.swagger-ui .opblock-post:hover{border-color:rgba(34,211,160,.4)!important;box-shadow:0 4px 28px rgba(34,211,160,.1)!important}
+.swagger-ui .opblock-get:hover{border-color:rgba(96,165,250,.4)!important;box-shadow:0 4px 28px rgba(96,165,250,.1)!important}
+.swagger-ui .opblock.is-open{border-color:rgba(167,139,250,.5)!important;box-shadow:0 4px 28px rgba(124,58,237,.15)!important}
+.swagger-ui .opblock .opblock-summary{padding:14px 18px!important;cursor:pointer}
+.swagger-ui .opblock .opblock-summary-method{font-family:'JetBrains Mono',monospace!important;font-size:.68rem!important;font-weight:700!important;border-radius:7px!important;padding:4px 10px!important;min-width:58px!important;text-align:center!important;letter-spacing:.04em!important}
+.swagger-ui .opblock-post .opblock-summary-method{background:rgba(34,211,160,.15)!important;color:var(--tel)!important;border:1px solid rgba(34,211,160,.25)!important}
+.swagger-ui .opblock-get .opblock-summary-method{background:rgba(96,165,250,.15)!important;color:var(--blu)!important;border:1px solid rgba(96,165,250,.25)!important}
+.swagger-ui .opblock-put .opblock-summary-method{background:rgba(251,191,36,.15)!important;color:var(--yel)!important;border:1px solid rgba(251,191,36,.25)!important}
+.swagger-ui .opblock-delete .opblock-summary-method{background:rgba(244,63,94,.15)!important;color:var(--red)!important;border:1px solid rgba(244,63,94,.25)!important}
+.swagger-ui .opblock-summary-path{font-family:'JetBrains Mono',monospace!important;font-size:.88rem!important;font-weight:600!important;color:var(--txt)!important}
+.swagger-ui .opblock-summary-description{font-size:.77rem!important;color:var(--mut)!important}
+.swagger-ui .opblock-summary-control svg{fill:var(--mut)!important}
+.swagger-ui .opblock-body{background:rgba(5,15,28,.85)!important;border-top:1px solid var(--bd)!important;padding:18px!important}
+.swagger-ui .opblock-section-header{background:transparent!important;border-bottom:1px solid var(--bd)!important;padding:8px 0!important}
+.swagger-ui .opblock-section-header h4{font-family:'Inter',sans-serif!important;font-size:.67rem!important;font-weight:700!important;color:var(--mut)!important;text-transform:uppercase!important;letter-spacing:.1em!important}
+.swagger-ui table{background:transparent!important}
+.swagger-ui .parameters-col_name,.swagger-ui .parameter__name{color:var(--pur)!important;font-family:'JetBrains Mono',monospace!important;font-size:.8rem!important}
+.swagger-ui .parameter__type{color:var(--tel)!important;font-family:'JetBrains Mono',monospace!important;font-size:.72rem!important}
+.swagger-ui .parameter__in{color:var(--mut)!important;font-size:.7rem!important}
+.swagger-ui td{border-bottom:1px solid rgba(26,48,69,.6)!important;color:var(--txt)!important}
+.swagger-ui th{color:var(--mut)!important;font-size:.67rem!important;font-weight:700!important;text-transform:uppercase!important;letter-spacing:.08em!important;border-bottom:1px solid var(--bd)!important}
+.swagger-ui input[type=text],.swagger-ui textarea,.swagger-ui select{background:rgba(5,15,28,.9)!important;border:1px solid var(--bd)!important;border-radius:9px!important;color:var(--txt)!important;font-family:'JetBrains Mono',monospace!important;font-size:.82rem!important;padding:9px 13px!important;outline:none!important;transition:border-color .15s,box-shadow .15s!important}
+.swagger-ui input[type=text]:focus,.swagger-ui textarea:focus{border-color:var(--pur)!important;box-shadow:0 0 0 3px rgba(167,139,250,.12)!important}
+.swagger-ui .btn{font-family:'Inter',sans-serif!important;font-weight:600!important;border-radius:9px!important;font-size:.82rem!important;padding:9px 20px!important;transition:all .15s!important;cursor:pointer!important}
+.swagger-ui .btn.execute{background:linear-gradient(135deg,var(--pur2),#6d28d9)!important;color:#fff!important;border:none!important;box-shadow:0 2px 14px rgba(124,58,237,.3)!important}
+.swagger-ui .btn.execute:hover{transform:translateY(-1px)!important;box-shadow:0 4px 22px rgba(124,58,237,.45)!important}
+.swagger-ui .btn.cancel{background:transparent!important;border:1px solid var(--bd)!important;color:var(--mut)!important}
+.swagger-ui .btn.cancel:hover{border-color:var(--red)!important;color:var(--red)!important}
+.swagger-ui .btn.try-out__btn{background:transparent!important;border:1px solid var(--bd)!important;color:var(--mut)!important}
+.swagger-ui .btn.try-out__btn:hover{border-color:var(--pur)!important;color:var(--pur)!important}
+.swagger-ui .responses-inner{background:transparent!important}
+.swagger-ui .response-col_status{color:var(--tel)!important;font-family:'JetBrains Mono',monospace!important;font-weight:700!important;font-size:.85rem!important}
+.swagger-ui .response-col_description__inner p{color:var(--mut)!important;font-size:.78rem!important}
+.swagger-ui .microlight,.swagger-ui pre.microlight{background:#020c18!important;border:1px solid var(--bd)!important;border-radius:10px!important;font-family:'JetBrains Mono',monospace!important;font-size:.75rem!important;color:var(--tel)!important;padding:14px!important;line-height:1.75!important}
+.swagger-ui .highlight-code{background:#020c18!important;border-radius:10px!important}
+.swagger-ui .highlight-code code{color:var(--tel)!important;font-family:'JetBrains Mono',monospace!important;font-size:.75rem!important}
+.swagger-ui code{color:var(--pur)!important;font-family:'JetBrains Mono',monospace!important;background:rgba(167,139,250,.09)!important;padding:2px 6px!important;border-radius:4px!important}
+.swagger-ui .responses-table .response{border-bottom:1px solid rgba(26,48,69,.5)!important}
+.swagger-ui .response-undocumented{color:var(--mut)!important}
+.swagger-ui section.models{background:rgba(10,24,40,.75)!important;backdrop-filter:blur(8px)!important;border:1px solid var(--bd)!important;border-radius:14px!important;margin-top:24px!important;padding:18px!important}
+.swagger-ui section.models h4{color:var(--txt)!important;font-size:.67rem!important;font-weight:700!important;text-transform:uppercase!important;letter-spacing:.1em!important}
+.swagger-ui .model-box{background:#020c18!important;border:1px solid var(--bd)!important;border-radius:9px!important;padding:14px!important}
+.swagger-ui .model{color:var(--txt)!important;font-family:'JetBrains Mono',monospace!important;font-size:.75rem!important}
+.swagger-ui .model-title{color:var(--pur)!important;font-weight:700!important}
+.swagger-ui .model .property.primitive{color:var(--tel)!important}
+.swagger-ui .model-container{background:transparent!important;border:none!important}
+.swagger-ui .loading-container{background:var(--bg)!important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
 </style>
 </head>
 <body>
-
-<div class="custom-header">
-  <div class="logo-area">
-    <div class="badge"><div class="pulse"></div>Live API</div>
-    <div>
-      <h1>Enterprise Onboarding Agent</h1>
-    </div>
-    <span class="version">v1.0.0 &nbsp;·&nbsp; OAS 3.1</span>
+<canvas id="bg"></canvas>
+<header class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo"><span>OpenEnv Hackathon 2026</span><strong>Agent Control Center</strong></div>
+    <div class="sep"></div>
+    <div class="spill spill-agent"><div class="dot dot-g"></div><span id="agSt">Connecting\u2026</span></div>
+    <div class="spill spill-policy"><div class="dot dot-y"></div><span id="polVer">Policy v1</span></div>
   </div>
-  <div class="header-right">
-    <a href="/web">← Dashboard</a>
-    <a href="https://github.com/TheKshitij/openenv-onboarding" target="_blank">GitHub</a>
-    <a href="/web" class="btn-demo">Try Demo</a>
+  <div class="hdr-right">
+    <a href="/web" class="hl">\u2190 Dashboard</a>
+    <a href="https://github.com/TheKshitij/openenv-onboarding" target="_blank" class="hl">GitHub</a>
+    <a href="/web" class="hl hl-cta">Live Demo</a>
+  </div>
+</header>
+<div class="banner">
+  <div class="banner-text">
+    <h2>Enterprise Employee Onboarding \u2014 REST API</h2>
+    <p>An OpenEnv RL environment: an AI agent navigates 12 enterprise IT &amp; HR systems while company <strong style="color:var(--yel)">policies drift mid-episode</strong> without warning. Three task levels, dense shaped rewards, verifiable reward function.</p>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="kv kv-p">12</div><div class="kl">Systems</div></div>
+    <div class="kpi"><div class="kv kv-t">3</div><div class="kl">Tasks</div></div>
+    <div class="kpi"><div class="kv kv-y">2x</div><div class="kl">Drifts</div></div>
   </div>
 </div>
-
 <div id="swagger-ui"></div>
-
 <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
 <script>
-window.onload = () => {
-  SwaggerUIBundle({
-    url: '/openapi.json',
-    dom_id: '#swagger-ui',
-    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
-    layout: 'BaseLayout',
-    deepLinking: true,
-    showExtensions: true,
-    showCommonExtensions: true,
-    defaultModelsExpandDepth: 1,
-    defaultModelExpandDepth: 2,
-    docExpansion: 'list',
-    filter: false,
-    tryItOutEnabled: true,
-  });
-};
+const cv=document.getElementById('bg'),cx=cv.getContext('2d');let W,H,ns=[];
+function init(){W=cv.width=innerWidth;H=cv.height=innerHeight;ns=[];for(let i=0;i<22;i++)ns.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4})}
+function draw(){cx.clearRect(0,0,W,H);ns.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1});for(let i=0;i<ns.length;i++)for(let j=i+1;j<ns.length;j++){const d=Math.hypot(ns[i].x-ns[j].x,ns[i].y-ns[j].y);if(d<180){cx.strokeStyle='rgba(26,48,69,'+(1-d/180)*.8+')';cx.lineWidth=.8;cx.beginPath();cx.moveTo(ns[i].x,ns[i].y);cx.lineTo(ns[j].x,ns[j].y);cx.stroke()}}ns.forEach(n=>{cx.fillStyle='rgba(124,58,237,.35)';cx.beginPath();cx.arc(n.x,n.y,2,0,Math.PI*2);cx.fill()});requestAnimationFrame(draw)}
+window.addEventListener('resize',init);init();draw();
+async function pollHealth(){const el=document.getElementById('agSt');try{const r=await fetch('/health');if(r.ok){el.textContent='Agent Ready';el.style.color='var(--tel)'}else throw 0}catch{el.textContent='Unreachable';el.style.color='var(--red)'}}
+pollHealth();setInterval(pollHealth,8000);
+const pvs=['Policy v1','Policy v2 \u26a0','Policy v3 \u26a1'];let pvi=0;
+setInterval(()=>{pvi=(pvi+1)%pvs.length;document.getElementById('polVer').textContent=pvs[pvi]},4000);
+window.onload=()=>{SwaggerUIBundle({url:'/openapi.json',dom_id:'#swagger-ui',presets:[SwaggerUIBundle.presets.apis,SwaggerUIBundle.SwaggerUIStandalonePreset],layout:'BaseLayout',deepLinking:true,defaultModelsExpandDepth:1,defaultModelExpandDepth:2,docExpansion:'list',tryItOutEnabled:true})};
 </script>
 </body>
-</html>
-"""
+</html>"""
     return HTMLResponse(content=DOCS_PAGE)
 
 
