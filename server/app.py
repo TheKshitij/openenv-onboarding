@@ -272,7 +272,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;opacity:.18;pointer-events:none}
   <div class="hdr-right">
     <a href="/web" class="hl">\u2190 Dashboard</a>
     <a href="https://github.com/TheKshitij/openenv-onboarding" target="_blank" class="hl">GitHub</a>
-    <a href="/web" class="hl hl-cta">Live Demo</a>
+    <a href="#swagger-ui" onclick="document.getElementById('swagger-ui').scrollIntoView({behavior:'smooth'});return false;" class="hl hl-cta">&#9654; Try It Live</a>
   </div>
 </header>
 <div class="banner">
