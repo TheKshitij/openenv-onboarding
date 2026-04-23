@@ -549,12 +549,12 @@ class OnboardingEnv:
 
     def _apply_action(self, action_str: str) -> Tuple[float, str]:
         # ── Format compliance check (Problem 1b) ─────────────────────────────
-        # Penalise the model for outputting markdown, backticks, or multi-line
-        # explanations instead of a clean command string.
+        # Penalise the model for outputting markdown code blocks or thought tags
+        # instead of a clean command string, but ignore minor stylistic variations.
         _raw = action_str.strip()
-        _forbidden = ('```', '**', '##', '\n\n', '* ', '> ')
+        _forbidden = ('```', '<think>', '</think>')
         if any(tok in _raw for tok in _forbidden):
-            return -0.10, "Invalid format: output a single plain-text command only."
+            return -0.10, "Invalid format: output a single plain-text command only without markdown or thought blocks."
 
         parts   = _raw.split(None, 2)
         if not parts or parts[0] == "hold":

@@ -175,11 +175,14 @@ escalate failed systems and resubmit with corrected values.
 
 ![Reward Improvement](./reward_improvement.png)
 
-```
-Untrained (step 0):   avg_score ≈ 0.42  violations_per_episode ≈ 8
-Trained (step 100):   avg_score ≈ 0.71  violations_per_episode ≈ 2
-Trained (step 200):   avg_score ≈ 0.79  violations_per_episode ≈ 0.5
-```
+Training conducted on-site at the Grand Finale using HuggingFace compute credits.
+Results will be updated here after the training run on April 25th.
+
+| Checkpoint | Score | Violations/Episode |
+|------------|-------|--------------------|
+| Step 0 (baseline) | TBD | TBD |
+| Step 100 | TBD | TBD |
+| Step 200 | TBD | TBD |
 
 Run training in Colab (free T4 GPU, ~40 minutes):
 
