@@ -319,6 +319,9 @@ def main():
 
     print(f"\nSaving to {OUTPUT_DIR}")
     if USE_UNSLOTH:
+        # Save raw LoRA adapters (safest, small, following 'use adapters directly' rule)
+        model.save_pretrained_lora(os.path.join(OUTPUT_DIR, "lora"))
+        # Save merged model for easy deployment to HF Spaces / Transformers
         model.save_pretrained_merged(OUTPUT_DIR, tokenizer, save_method="merged_16bit")
     else:
         trainer.save_model(OUTPUT_DIR)
