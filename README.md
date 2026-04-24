@@ -184,6 +184,11 @@ Training run observed on April 24th (Pre-Hackathon Validation). Final results wi
 | Step 105 (peak) | 0.701 | 0.00 |
 | Step 115 (interrupted) | 0.699 | 0.00 |
 
+#### 📝 April 25th On-Site Evidence Checklist
+To satisfy the 20% "Showing Improvement in Rewards" criteria on stage, capture the following three pieces of evidence during your live run:
+1. **[ ] The Baseline (Step 0-10):** A screenshot of the `[sample] action=...` showing the untrained model guessing or outputting messy strings.
+2. **[ ] The Breakthrough (Step 100+):** A screenshot of the `[sample] action=...` showing a correct, policy-aware submission (e.g., `submit ad_account username=EMP123,security_level=enhanced`).
+3. **[ ] The Curve:** The final `reward_improvement.png` plot showing the upward trend.
 Run training in Colab (free T4 GPU, ~40 minutes):
 
 ```bash
