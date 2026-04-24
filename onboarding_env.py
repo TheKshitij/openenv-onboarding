@@ -10,6 +10,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, Field
+from openenv.core import Environment
 
 
 # ─── Enums ────────────────────────────────────────────────────────────────────
@@ -362,7 +363,7 @@ def _validate_submission(
 
 # ─── Environment ─────────────────────────────────────────────────────────────
 
-class OnboardingEnv:
+class OnboardingEnv(Environment):
     """
     OpenEnv environment for Enterprise Employee Onboarding.
     Implements reset() / step() / state() with typed Pydantic models.
