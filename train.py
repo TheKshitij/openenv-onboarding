@@ -319,8 +319,24 @@ def main():
 
     print(f"\nSaving to {OUTPUT_DIR}")
     if USE_UNSLOTH:
+        print("Saving LoRA adapters (safe/simple)...")
         # Save raw LoRA adapters (safest, small, following 'use adapters directly' rule)
         model.save_pretrained_lora(os.path.join(OUTPUT_DIR, "lora"))
+        tokenizer.save_pretrained(os.path.join(OUTPUT_DIR, "lora"))
+        
+        # Quick inference test before heavy merge — catch quality issues early
+        print("Testing adapter inference...")
+        from unsloth import FastLanguageModel
+        FastLanguageModel.for_inference(model)
+        test_input = tokenizer(
+            "<|im_start|>user\nprovision ad_account<|im_end|>\n<|im_start|>assistant\n",
+            return_tensors="pt"
+        ).to("cuda")
+        with torch.no_grad():
+            out = model.generate(**test_input, max_new_tokens=20, temperature=0.1)
+        print("Adapter test output:", tokenizer.decode(out[0], skip_special_tokens=True))
+        
+        print("Generating merged 16-bit model (for deployment)...")
         # Save merged model for easy deployment to HF Spaces / Transformers
         model.save_pretrained_merged(OUTPUT_DIR, tokenizer, save_method="merged_16bit")
     else:
