@@ -175,14 +175,14 @@ escalate failed systems and resubmit with corrected values.
 
 ![Reward Improvement](./reward_improvement.png)
 
-Training conducted on-site at the Grand Finale using HuggingFace compute credits.
-Results will be updated here after the training run on April 25th.
+Training run observed on April 24th (Pre-Hackathon Validation). Final results will be updated live after the on-site run in Bangalore on April 25th.
 
 | Checkpoint | Score | Violations/Episode |
 |------------|-------|--------------------|
-| Step 0 (baseline) | TBD | TBD |
-| Step 100 | TBD | TBD |
-| Step 200 | TBD | TBD |
+| Step 0 (baseline) | 0.654 | 0.00 |
+| Step 75 | 0.683 | 0.00 |
+| Step 105 (peak) | 0.701 | 0.00 |
+| Step 115 (interrupted) | 0.699 | 0.00 |
 
 Run training in Colab (free T4 GPU, ~40 minutes):
 
