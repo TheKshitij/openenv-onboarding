@@ -20,6 +20,7 @@ Submitted to the **Meta PyTorch OpenEnv Hackathon 2026 — Grand Finale**.
 ### 🚀 **Quick Links**
 *   **[Live Demo (Hugging Face Space)](https://huggingface.co/spaces/importkk/openenv-onboarding)**
 *   **[Training Notebook (Google Colab)](https://colab.research.google.com/drive/1kqPCw_JGKfp-ZQ_Vrh2d7GvVj2cmfa-S?usp=sharing)**
+*   **[Trained Model (Hugging Face)](https://huggingface.co/importkk/openenv-onboarding-model)**
 *   **[GitHub Repository](https://github.com/TheKshitij/openenv-onboarding)**
 
 ---
@@ -37,6 +38,7 @@ Submitted to the **Meta PyTorch OpenEnv Hackathon 2026 — Grand Finale**.
 - 🌐 **HF Space (live environment):** [importkk/openenv-onboarding](https://huggingface.co/spaces/importkk/openenv-onboarding)
 - 📂 **GitHub Repository:** [TheKshitij/openenv-onboarding](https://github.com/TheKshitij/openenv-onboarding)
 - 📓 **Colab Training Notebook:** [OpenEnv GRPO Training](https://colab.research.google.com/drive/1kqPCw_JGKfp-ZQ_Vrh2d7GvVj2cmfa-S?usp=sharing)
+- 🧠 **Trained Model:** [importkk/openenv-onboarding-model](https://huggingface.co/importkk/openenv-onboarding-model)
 - 📝 **Blog Post / Video:** [Adaptive Onboarding Blog](https://huggingface.co/spaces/importkk/openenv-onboarding/blob/main/blog.md)
 ### 📈 Training Evidence
 

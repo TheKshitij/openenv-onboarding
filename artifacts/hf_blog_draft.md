@@ -219,4 +219,5 @@ One thing I'd love to see in a future OpenEnv release: a native "policy drift" p
 
 **[Explore the Hugging Face Space](https://huggingface.co/spaces/importkk/openenv-onboarding)**
 **[Open the Colab Training Notebook](https://colab.research.google.com/drive/1kqPCw_JGKfp-ZQ_Vrh2d7GvVj2cmfa-S?usp=sharing)**
+**[Download the Trained Model](https://huggingface.co/importkk/openenv-onboarding-model)**
 **[View the GitHub Repository](https://github.com/TheKshitij/openenv-onboarding)**
