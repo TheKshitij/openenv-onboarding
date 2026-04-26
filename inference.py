@@ -8,14 +8,14 @@ Environment variables:
     HF_TOKEN       API key
 """
 
-import os, sys, textwrap
+import os, sys, textwrap, re
 from typing import List, Optional
 
 from openai import OpenAI
 from onboarding_env import OnboardingAction, OnboardingEnv, OnboardingObservation, TASK_IDS
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
+MODEL_NAME   = os.getenv("MODEL_NAME",   "importkk/openenv-onboarding-model")
 API_KEY      = os.getenv("HF_TOKEN") or os.getenv("API_KEY", "no-key")
 BENCHMARK    = "enterprise-onboarding"
 MAX_STEPS    = {"basic_onboarding": 20, "dept_onboarding": 35, "enterprise_onboarding": 55}
@@ -82,6 +82,40 @@ _SYSTEM = textwrap.dedent("""
 
 # ─── Observation formatter ────────────────────────────────────────────────────
 
+def _get_hint(obs: OnboardingObservation) -> str:
+    """Compute the exact correct next command using live policy values."""
+    p = obs.current_policy
+    emp = obs.employee_id.lower().replace("-", "")
+    fields = {
+        "ad_account":           f"username={emp},security_level={p.it_security_level}",
+        "email_setup":          f"alias={emp},quota=50gb",
+        "hrms_registration":    f"role={obs.employee_role},department={obs.department},grade=L3",
+        "payroll_enrollment":   f"bank_account=XXXXXXXX,pan_number=ABCDE1234F,leave_policy={p.leave_policy}",
+        "badge_access":         f"zones={','.join(p.badge_zones)},access_level=standard",
+        "device_allocation":    f"device_type={p.device_type},asset_tag=IT{emp}",
+        "vpn_setup":            "profile=corporate,mfa_method=totp",
+        "compliance_training":  f"modules={','.join(p.compliance_modules)} deadline_days=30",
+        "it_security_training": f"level={p.it_security_level},certification=yes",
+        "health_insurance":     "plan=family,dependents=0",
+        "project_assignment":   "project_code=PRJ001,manager_id=MGR001",
+        "mentor_assignment":    "mentor_id=MNT001,meeting_cadence=weekly",
+    }
+    if obs.policy_drift_event:
+        return "check_policy"
+    for s in obs.systems:
+        if not s.required:
+            continue
+        status = s.status.value
+        if status == "failed":
+            return f"escalate {s.id} retry_after_failure"
+        if status == "pending":
+            return f"provision {s.id}"
+        if status in ("provisioned", "in_progress"):
+            f = fields.get(s.id, "")
+            return f"submit {s.id} {f}" if f else f"submit {s.id}"
+    return "hold"
+
+
 def _fmt(obs: OnboardingObservation, step: int, hist: List[str]) -> str:
     p = obs.current_policy
     lines = [
@@ -104,14 +138,19 @@ def _fmt(obs: OnboardingObservation, step: int, hist: List[str]) -> str:
     lines.append("SYSTEMS:")
     for s in obs.systems:
         req  = "REQ" if s.required else "opt"
+        # FORCE UPPERCASE so model recognises pending systems as action items
+        status_str = s.status.value.upper()
         err  = f" ERROR: {s.error_msg[:60]}" if s.error_msg else ""
         dep  = f" [blocked by: {s.dependencies}]" if s.status.value == "blocked" else ""
-        lines.append(f"  [{req}] {s.id:<24} {s.status.value:<12} attempts={s.attempts}{err}{dep}")
+        lines.append(f"  [{req}] {s.id:<24} {status_str:<12} attempts={s.attempts}{err}{dep}")
 
     lines += ["", "RECENT HISTORY:"]
     for h in hist[-4:]:
         lines.append(f"  {h}")
-    lines += ["", f"Last result: {obs.last_action_result[:80]}", "", "Your action:"]
+
+    hint = _get_hint(obs)
+    lines += ["", f"SUGGESTED NEXT ACTION: {hint}", ""]
+    lines += [f"Last result: {obs.last_action_result[:80]}", "", "Your action:"]
     return "\n".join(lines)
 
 
@@ -128,7 +167,22 @@ def get_action(client: OpenAI, obs: OnboardingObservation, step: int, hist: List
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,
         )
-        act = (resp.choices[0].message.content or "hold").strip().splitlines()[0].strip()
+        content = resp.choices[0].message.content or "hold"
+        
+        # Extract action from <action> tags if present (reasoning model format)
+        match = re.search(r"<action>(.*?)</action>", content, re.DOTALL)
+        if match:
+            # Take only the first line to block chatty/long responses
+            act = match.group(1).strip().split('\n')[0].strip()
+        else:
+            # Fallback: find first line starting with a known command
+            act = "hold"
+            for line in content.strip().splitlines():
+                line = line.strip()
+                if any(line.startswith(v) for v in ["provision", "submit", "check_policy", "escalate", "verify", "hold"]):
+                    act = line
+                    break
+            
         return act if act else "hold"
     except Exception as exc:
         print(f"[DEBUG] Model error: {exc}", flush=True)

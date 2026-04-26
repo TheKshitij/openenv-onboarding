@@ -432,13 +432,41 @@ h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;letter-spacing:-.04em;backgr
 .bpri:hover{background:#6d28d9;transform:translateY(-1px)}
 .bsec{background:transparent;color:var(--mut);border:1px solid var(--bd);padding:13px 28px;border-radius:10px;font-size:.87rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center}
 .bsec:hover{border-color:var(--mut);color:var(--txt)}
+
+/* ── Policy Drift Alert ─────────────────────────────────────────── */
+#drift-overlay{position:fixed;inset:0;z-index:9000;pointer-events:none;opacity:0;transition:opacity .4s;background:rgba(251,191,36,.06);border:2px solid rgba(251,191,36,.0)}
+#drift-overlay.active{opacity:1;border-color:rgba(251,191,36,.25);animation:dfbg 1.2s ease-in-out 3}
+@keyframes dfbg{0%,100%{background:rgba(251,191,36,.04)}50%{background:rgba(251,191,36,.12)}}
+#drift-alert{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-120px);z-index:9001;background:rgba(10,14,20,.96);border:1.5px solid rgba(251,191,36,.6);border-radius:16px;padding:16px 22px;display:flex;gap:14px;align-items:flex-start;max-width:580px;width:90%;box-shadow:0 8px 40px rgba(251,191,36,.2),0 2px 12px rgba(0,0,0,.5);backdrop-filter:blur(20px);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .35s;opacity:0}
+#drift-alert.active{transform:translateX(-50%) translateY(0);opacity:1}
+.da-icon{width:36px;height:36px;border-radius:50%;background:rgba(251,191,36,.12);border:1.5px solid rgba(251,191,36,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:daico 2s ease-in-out infinite}
+@keyframes daico{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.4)}70%{box-shadow:0 0 0 10px rgba(251,191,36,0)}}
+.da-body{flex:1}
+.da-tag{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--yel);opacity:.7;margin-bottom:4px}
+.da-title{font-size:.92rem;font-weight:700;color:var(--yel);margin-bottom:6px;letter-spacing:-.01em}
+.da-msg{font-size:.73rem;font-family:'JetBrains Mono',monospace;color:rgba(251,191,36,.55);line-height:1.65}
+.da-close{background:transparent;border:none;color:var(--mut);cursor:pointer;padding:2px 6px;border-radius:6px;font-size:.85rem;line-height:1;margin-top:-2px;transition:color .15s}
+.da-close:hover{color:var(--yel)}
 </style>
 </head>
 <body>
+<!-- Policy Drift Alert Overlay -->
+<div id="drift-overlay"></div>
+<div id="drift-alert" role="alert" aria-live="assertive">
+  <div class="da-icon">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L16.5 15H1.5L9 2z" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 7v4" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="12.5" r=".75" fill="#fbbf24"/></svg>
+  </div>
+  <div class="da-body">
+    <div class="da-tag">&#9889; Policy Drift Detected</div>
+    <div class="da-title" id="da-title">Company Policy Has Changed</div>
+    <div class="da-msg" id="da-msg">Run check_policy then resubmit all affected systems.</div>
+  </div>
+  <button class="da-close" onclick="dismissDrift()" aria-label="Dismiss">&#x2715;</button>
+</div>
 <canvas id="cv"></canvas>
 <main>
   <div class="hero">
-    <div class="live-badge"><div class="pulse"></div>OpenEnv · Grand Finale 2026</div>
+    <div class="live-badge"><div class="pulse"></div>OpenEnv · Grand Finale 2026 · v2.0</div>
     <h1>Enterprise Employee<br>Onboarding Agent</h1>
     <p class="tagline">An AI agent navigates 12 enterprise IT &amp; HR systems to onboard a new hire — while company policies drift mid-episode without warning.</p>
     <div class="status-bar">
@@ -527,6 +555,41 @@ async function ping(){
   }
 }
 ping();setInterval(ping,10000);
+
+// ── Policy Drift Alert System ───────────────────────────────────────────────
+let _lastDriftMsg = '';
+let _driftDismissed = false;
+
+function triggerDrift(msg) {
+  if (msg === _lastDriftMsg && _driftDismissed) return;
+  _lastDriftMsg = msg;
+  _driftDismissed = false;
+  const parts = msg.split('. ');
+  document.getElementById('da-title').textContent = parts[0] || 'Policy Changed';
+  document.getElementById('da-msg').textContent = parts.slice(1).join('. ') ||
+    'Run check_policy then resubmit all affected systems.';
+  document.getElementById('drift-overlay').classList.add('active');
+  document.getElementById('drift-alert').classList.add('active');
+  setTimeout(dismissDrift, 12000);
+}
+
+function dismissDrift() {
+  _driftDismissed = true;
+  document.getElementById('drift-overlay').classList.remove('active');
+  document.getElementById('drift-alert').classList.remove('active');
+}
+
+async function pollDrift() {
+  try {
+    const r = await fetch('/state');
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j.policy_drift_event && j.policy_drift_event.trim()) {
+      triggerDrift(j.policy_drift_event);
+    }
+  } catch(e) {}
+}
+setInterval(pollDrift, 500);
 
 const termSeq=[
   {c:'tc-out',t:'200 OK — Policy v2 active'},

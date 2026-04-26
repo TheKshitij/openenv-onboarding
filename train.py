@@ -25,7 +25,8 @@ NUM_STEPS     = 500                              # ~40 min on T4 with Unsloth; i
 SAVE_STEPS    = 100
 TASK          = "dept_onboarding"               # medium task shows clearest improvement
 SEED          = 42
-OUTPUT_DIR    = "./onboarding-grpo-ckpt"
+OUTPUT_DIR    = "/content/drive/MyDrive/openenv-onboarding-ckpt"  # Save to Google Drive
+HF_REPO_ID    = "importkk/openenv-onboarding-model"           # Replace with your HF ID
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 import torch
@@ -111,34 +112,43 @@ def _make_prompt(obs_dict: dict) -> str:
 
 def env_reward(prompts: List[str], completions: List[str], **kwargs) -> List[float]:
     """
-    Rollout reward: run each completion as an action in a fresh env episode
-    and return the cumulative normalised score after 10 steps.
-    This is what GRPOTrainer uses to compute advantages.
+    Rollout reward: run each completion as an action in the EXACT env state.
     """
+    import json
     rewards = []
     completion_pcts = []
     violation_counts = []
 
-    for prompt, completion in zip(prompts, completions):
+    # Get the extra columns passed from the dataset
+    seeds = kwargs.get("seed", [SEED] * len(prompts))
+    actions_taken_str = kwargs.get("actions_taken", ["[]"] * len(prompts))
+
+    for prompt, completion, seed, acts_str in zip(prompts, completions, seeds, actions_taken_str):
         action_str = completion.strip().splitlines()[0].strip()
 
-        env = OnboardingEnv(task=TASK, seed=SEED)
+        # 1. Reconstruct the EXACT environment state
+        env = OnboardingEnv(task=TASK, seed=int(seed))
         obs = env.reset()
+        
+        try:
+            past_actions = json.loads(acts_str)
+            for pa in past_actions:
+                if not env._ep.get("done", False):
+                    res = env.step(OnboardingAction(action=pa))
+                    obs = res.observation
+        except Exception:
+            pass
 
-        total = 0.0
-        for _ in range(10):
-            if env._ep.get("done", False):
-                break
-            try:
-                result = env.step(OnboardingAction(action=action_str))
-                total += result.reward
-                obs    = result.observation
-            except Exception:
-                total -= 0.10
-                break
+        # 2. Evaluate the model's new action
+        try:
+            result = env.step(OnboardingAction(action=action_str))
+            obs = result.observation
+        except Exception:
+            pass # Invalid syntax will be naturally penalized by the normalise_score
 
         score = env._normalise_score()
         rewards.append(float(score))
+        
         # ── Collect extra scalars for monitoring (Problem 3a) ───────────────────────────
         completion_pcts.append(obs.completion_pct)
         violation_counts.append(obs.episode_violations)
@@ -146,6 +156,9 @@ def env_reward(prompts: List[str], completions: List[str], **kwargs) -> List[flo
     if completion_pcts:
         avg_cpl = sum(completion_pcts) / len(completion_pcts)
         avg_vio = sum(violation_counts) / len(violation_counts)
+        # Print a sample action from the batch for qualitative monitoring
+        sample_action = completions[0].strip().splitlines()[0].strip() if completions else ""
+        print(f"  [sample] action='{sample_action[:80]}...'")
         print(f"  [metrics] avg_score={sum(rewards)/len(rewards):.3f}  "
               f"avg_completion_pct={avg_cpl:.1f}%  avg_violations={avg_vio:.2f}")
 
@@ -184,7 +197,9 @@ def build_dataset(n: int = 500) -> Dataset:
             "submit email_setup alias=emp.user,quota=50gb",
         ]
 
-    def _advance(env, obs, actions, n_steps):
+    import json
+
+    def _advance(env, obs, actions, n_steps, actions_taken_list):
         """Step the env through the first n_steps of a given action list."""
         for j in range(min(n_steps, len(actions))):
             if env._ep.get("done", False):
@@ -192,11 +207,12 @@ def build_dataset(n: int = 500) -> Dataset:
             try:
                 result = env.step(OnboardingAction(action=actions[j]))
                 obs = result.observation
+                actions_taken_list.append(actions[j])
             except Exception:
                 break
         return obs
 
-    def _make_entry(obs):
+    def _make_entry(obs, seed, actions_taken_list):
         return {
             "prompt": (
                 f"<|im_start|>system\n{SYSTEM}<|im_end|>\n"
@@ -204,52 +220,75 @@ def build_dataset(n: int = 500) -> Dataset:
                 f"<|im_start|>assistant\n"
             ),
             "task": TASK,
+            "seed": seed,
+            "actions_taken": json.dumps(actions_taken_list)
         }
 
     # ── Bucket A: early episode (steps 0-10) ──────────────────────────────────
     for _ in range(bucket_a):
-        env = OnboardingEnv(task=TASK, seed=rng.randint(0, 99999))
+        seed = rng.randint(0, 99999)
+        env = OnboardingEnv(task=TASK, seed=seed)
         obs = env.reset()
         steps = rng.randint(0, 10)
-        obs = _advance(env, obs, _warm_up_actions(obs), steps)
-        prompts.append(_make_entry(obs))
+        actions_taken = []
+        obs = _advance(env, obs, _warm_up_actions(obs), steps, actions_taken)
+        prompts.append(_make_entry(obs, seed, actions_taken))
 
     # ── Bucket B: post-drift-1 (advance past drift step) ─────────────────────
     drift1 = {"basic_onboarding": 0, "dept_onboarding": 15, "enterprise_onboarding": 10}[TASK]
     if drift1 > 0:
         for _ in range(bucket_b):
-            env = OnboardingEnv(task=TASK, seed=rng.randint(0, 99999))
+            seed = rng.randint(0, 99999)
+            env = OnboardingEnv(task=TASK, seed=seed)
             obs = env.reset()
-            # Complete warm-up systems, then hold to trigger drift
-            obs = _advance(env, obs, _warm_up_actions(obs), len(_warm_up_actions(obs)))
+            actions_taken = []
+            obs = _advance(env, obs, _warm_up_actions(obs), len(_warm_up_actions(obs)), actions_taken)
             while env._ep.get("step", 0) < drift1 + rng.randint(1, 7):
                 if env._ep.get("done", False):
                     break
                 result = env.step(OnboardingAction(action="hold"))
                 obs = result.observation
-            prompts.append(_make_entry(obs))
+                actions_taken.append("hold")
+            prompts.append(_make_entry(obs, seed, actions_taken))
 
     # ── Bucket C: post-drift-2 (enterprise only, advance past step 30) ────────
     drift2 = 30
     for _ in range(bucket_c):
-        env = OnboardingEnv(task=TASK, seed=rng.randint(0, 99999))
+        seed = rng.randint(0, 99999)
+        env = OnboardingEnv(task=TASK, seed=seed)
         obs = env.reset()
-        obs = _advance(env, obs, _warm_up_actions(obs), len(_warm_up_actions(obs)))
+        actions_taken = []
+        obs = _advance(env, obs, _warm_up_actions(obs), len(_warm_up_actions(obs)), actions_taken)
         while env._ep.get("step", 0) < drift2 + rng.randint(1, 5):
             if env._ep.get("done", False):
                 break
             result = env.step(OnboardingAction(action="hold"))
             obs = result.observation
-        prompts.append(_make_entry(obs))
+            actions_taken.append("hold")
+        prompts.append(_make_entry(obs, seed, actions_taken))
 
     return Dataset.from_list(prompts)
-
-
 
 # ── Training ──────────────────────────────────────────────────────────────────
 
 def main():
-    print(f"Building dataset ({TASK})...")
+    # ── Safety: Mount Google Drive if in Colab ──────────────────────────
+    try:
+        from google.colab import drive
+        print("Mounting Google Drive for safety...")
+        drive.mount('/content/drive')
+    except ImportError:
+        pass
+    
+    # ── Safety: Login to Hugging Face ──────────────────────────────────
+    from huggingface_hub import login
+    # In Colab, you can set an environment variable or just login manually
+    if os.getenv("HF_TOKEN"):
+        login(os.getenv("HF_TOKEN"))
+    else:
+        print("Please run !huggingface-cli login in a cell before starting.")
+
+    print(f"Loading task {TASK}...")
     dataset = build_dataset(500)
     print(f"Dataset size: {len(dataset)}")
 
@@ -269,6 +308,10 @@ def main():
         report_to="none",
         max_completion_length=MAX_NEW_TOKENS,  # renamed from max_new_tokens in newer TRL
         num_generations=4,  # GRPO samples 4 completions per prompt
+        push_to_hub=True,
+        hub_model_id=HF_REPO_ID,
+        hub_strategy="checkpoint",
+        hub_private_repo=True,
     )
 
     trainer = GRPOTrainer(
@@ -320,29 +363,18 @@ def main():
     print(f"\nSaving to {OUTPUT_DIR}")
     if USE_UNSLOTH:
         print("Saving LoRA adapters (safe/simple)...")
-        # Save raw LoRA adapters (safest, small, following 'use adapters directly' rule)
+        # Save raw LoRA adapters
         model.save_pretrained_lora(os.path.join(OUTPUT_DIR, "lora"))
         tokenizer.save_pretrained(os.path.join(OUTPUT_DIR, "lora"))
         
-        # Quick inference test before heavy merge — catch quality issues early
-        print("Testing adapter inference...")
-        from unsloth import FastLanguageModel
-        FastLanguageModel.for_inference(model)
-        test_input = tokenizer(
-            "<|im_start|>user\nprovision ad_account<|im_end|>\n<|im_start|>assistant\n",
-            return_tensors="pt"
-        ).to("cuda")
-        with torch.no_grad():
-            out = model.generate(**test_input, max_new_tokens=20, temperature=0.1)
-        print("Adapter test output:", tokenizer.decode(out[0], skip_special_tokens=True))
-        
-        print("Generating merged 16-bit model (for deployment)...")
-        # Save merged model for easy deployment to HF Spaces / Transformers
-        model.save_pretrained_merged(OUTPUT_DIR, tokenizer, save_method="merged_16bit")
+        # Push to Hugging Face
+        print(f"Pushing final model to {HF_REPO_ID}...")
+        model.push_to_hub_merged(HF_REPO_ID, tokenizer, save_method="merged_16bit")
     else:
         trainer.save_model(OUTPUT_DIR)
         tokenizer.save_pretrained(OUTPUT_DIR)
-    print("Training complete.")
+        trainer.push_to_hub()
+    print("Training complete and uploaded to Hugging Face.")
 
 
 
