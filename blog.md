@@ -199,7 +199,7 @@ curl -X POST http://localhost:7860/reset \
 To retrain:
 ```bash
 # In Colab
-!pip install trl unsloth pydantic openai matplotlib -q
+!pip install trl unsloth pydantic openai matplotlib tensorboard -q
 !python train.py
 ```
 

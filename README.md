@@ -233,7 +233,7 @@ To satisfy the 20% "Showing Improvement in Rewards" criteria, here is the chrono
 Run training in Colab (free T4 GPU, ~40 minutes):
 
 ```bash
-pip install trl unsloth pydantic openai matplotlib -q
+pip install trl unsloth pydantic openai matplotlib tensorboard -q
 python train.py
 ```
 
