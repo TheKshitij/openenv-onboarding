@@ -44,17 +44,17 @@ To satisfy the hackathon requirement for observable evidence of training progres
 
 #### 1. Reward Improvement (Adaptive Behavior)
 The modest but defensible improvement from **0.726 to 0.734** represents the agent learning to recover from policy drift and mastering **Action Chaining**—executing multiple system commands in a single turn.
-![Reward Curve](./artifacts/reward_improvement.png)
+![Reward Curve](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/reward_improvement.png)
 
 #### 2. Training Loss
 Standard policy loss stabilization during GRPO fine-tuning.
-![Loss Curve](./artifacts/training_loss.png)
+![Loss Curve](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/training_loss.png)
 
 #### 📝 On-Site Evidence Checklist (April 26th)
 During the live run, we capture:
-1. **The Baseline (Step 0-10):** [Untrained model guessing](./artifacts/baseline_steps.png)
-2. **The Breakthrough (Step 100+):** [Policy-aware submission](./artifacts/breakthrough_logs_1.jpeg)
-3. **The Final Curve:** [Regenerated reward_improvement.png](./artifacts/reward_improvement.png)
+1. **The Baseline (Step 0-10):** [Untrained model guessing](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/baseline_steps.png)
+2. **The Breakthrough (Step 100+):** [Policy-aware submission](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/breakthrough_logs_1.jpeg)
+3. **The Final Curve:** [Regenerated reward_improvement.png](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/reward_improvement.png)
 ---
 
 ## The Problem
@@ -197,7 +197,7 @@ escalate failed systems and resubmit with corrected values.
 
 ### Reward Improvement
 
-![Reward Improvement](./artifacts/reward_improvement.png)
+![Reward Improvement](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/reward_improvement.png)
 
 Training run observed on April 26th (Post-Hackathon Validation). 
 
@@ -217,17 +217,17 @@ To satisfy the 20% "Showing Improvement in Rewards" criteria, here is the chrono
 
 **1. Baseline Chaos (Steps 5-10)**
 *The agent starts with a high violation rate (0.88) and low task completion (25%) as it fails to respect the policy drift.*
-![Baseline Logs](./artifacts/baseline_steps.png)
+![Baseline Logs](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/baseline_steps.png)
 
 **2. The Action Chaining Breakthrough (Steps 105-140)**
 *Violations drop to a perfect 0.00. The agent begins 'batching' commands like `check_policy` and `provision` together, significantly increasing efficiency.*
-![Breakthrough 1](./artifacts/breakthrough_logs_1.jpeg)
-![Breakthrough 2](./artifacts/breakthrough_logs_2.jpeg)
+![Breakthrough 1](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/breakthrough_logs_1.jpeg)
+![Breakthrough 2](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/breakthrough_logs_2.jpeg)
 
 **3. Final Reward Summary (The 'Receipt')**
 *The complete log of the 500-step climb, showing the reward peaking at 0.742 and stabilizing at 0.734.*
-![Reward Summary 1](./artifacts/reward_summary_1.jpeg)
-![Reward Summary 2](./artifacts/reward_summary_2.jpeg)
+![Reward Summary 1](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/reward_summary_1.jpeg)
+![Reward Summary 2](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/reward_summary_2.jpeg)
 Run training in Colab (free T4 GPU, ~40 minutes):
 
 ```bash

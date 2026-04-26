@@ -145,11 +145,11 @@ In RL, this kind of emergent behavior — discovering a more efficient strategy 
 
 ### The reward curve
 
-![Reward Curve](./reward_improvement.png)
+![Reward Curve](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/reward_improvement.png)
 
 The dip at step 100 is the action chaining discovery period. The model is experimenting with longer chains, some of which fail, pulling the average down temporarily. By step 140 it recovers to the peak. The plateau from step 200 to 500 represents stable convergence — the model has found a reliable policy and is refining it.
 
-![Loss Curve](./training_loss.png)
+![Loss Curve](https://huggingface.co/spaces/importkk/openenv-onboarding/resolve/main/artifacts/training_loss.png)
 
 The loss curve shows clean log-linear convergence over 500 steps — textbook GRPO behavior.
 
