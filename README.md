@@ -237,9 +237,7 @@ pip install trl unsloth pydantic openai matplotlib tensorboard -q
 python train.py
 ```
 
-The training script uses `GRPOTrainer` from HuggingFace TRL with `Qwen2.5-1.5B-Instruct`
-as the base model. The reward function wraps the environment step reward directly.
-A `reward_improvement.png` plot is saved automatically after training.
+The training script intentionally uses a small, highly-capable model (`Qwen2.5-1.5B-Instruct`) paired with **QLoRA (4-bit quantization)** via Unsloth. By budgeting our compute, we achieved rapid iteration and stable convergence on a free Colab T4 in just 40 minutes. This strategy allowed us to focus deeply on environment quality and dense reward signals rather than struggling with memory constraints. The reward function wraps the environment step reward directly. A `reward_improvement.png` plot is saved automatically after training.
 
 ---
 

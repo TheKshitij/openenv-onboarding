@@ -105,7 +105,7 @@ The `+0.05` for calling `check_policy` after a drift event is deliberate. It's a
 
 ## Training: GRPO with Unsloth on a T4
 
-I trained `Qwen/Qwen2.5-1.5B-Instruct` using Group Relative Policy Optimization (GRPO) via HuggingFace TRL, with Unsloth for 2x faster training on a free Colab T4.
+I deliberately chose a small, highly-capable model (`Qwen/Qwen2.5-1.5B-Instruct`) and utilized **QLoRA (4-bit quantization)** via Unsloth. By strictly budgeting available compute, I was able to run rapid, iterative training cycles on a free Colab T4. This strategy allowed me to focus my effort on the quality of the environment and the density of the reward signals, rather than struggling to get a massive model into memory. I used Group Relative Policy Optimization (GRPO) via HuggingFace TRL.
 
 The reward function connects directly to the environment — no static dataset, no synthetic labels. Each training step, the model generates an action, the environment evaluates it against the current policy state, and the reward flows back.
 
